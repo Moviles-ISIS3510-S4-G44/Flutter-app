@@ -1,4 +1,4 @@
-package com.example.marketplace_flutter_application
+package com.uniandes.marketplace
 
 import io.flutter.embedding.android.FlutterActivity
 
