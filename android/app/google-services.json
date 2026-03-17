@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276514972252",
+    "project_id": "uniandes-marketplace",
+    "storage_bucket": "uniandes-marketplace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276514972252:android:39d2d4128919e3eeaf7c99",
+        "android_client_info": {
+          "package_name": "com.uniandes.marketplace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNGQaiRFhXdMVZ0QYEl_1lIBbUqid0n7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
