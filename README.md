@@ -1,17 +1,23 @@
 # 🛒 Uniandes Marketplace App
 
-## 📌 Project Architecture
+## 📌 Architecture Overview
 
-This project follows the **official Flutter app architecture guidelines**, based on the **MVVM (Model–View–ViewModel)** pattern and layered separation.
+This project follows Flutter’s recommended architecture based on the **MVVM (Model–View–ViewModel)** pattern.
 
-According to Flutter documentation, an application should be divided into:
+According to Flutter:
 
-* **UI Layer (Views + ViewModels)**
-* **Data Layer (Repositories + Services)** ([Flutter Documentation][1])
+* **UI Layer → Views + ViewModels**
+* **Data Layer → Repositories + Services** ([Flutter Documentation][1])
 
-The main goal of this architecture is to enforce:
+Each feature in the app is structured as:
 
-> **Separation of concerns** and maintainability ([Flutter Documentation][2])
+```text
+1 Feature = 1 View + 1 ViewModel
+```
+
+Flutter explicitly states that:
+
+> “Each feature… contains one view and one view model” ([Flutter Documentation][1])
 
 ---
 
@@ -19,9 +25,16 @@ The main goal of this architecture is to enforce:
 
 ```text
 lib/
-  main.dart
-
   ui/
+    router/
+      app_router.dart
+
+    auth/
+      login_view.dart
+      login_viewmodel.dart
+      signup_view.dart
+      signup_viewmodel.dart
+
     home/
       home_view.dart
       home_viewmodel.dart
@@ -34,204 +47,149 @@ lib/
       product_detail_view.dart
       product_viewmodel.dart
 
-    chat/
-      chat_view.dart
-      chat_viewmodel.dart
+    create_listing/
+      create_listing_view.dart
+      create_listing_viewmodel.dart
 
     profile/
       profile_view.dart
       profile_viewmodel.dart
 
+    map/
+      map_view.dart
+      map_viewmodel.dart
+
   data/
     repositories/
-      product_repository.dart
-      user_repository.dart
-      chat_repository.dart
-
     services/
-      api_service.dart
-      firebase_service.dart
 
   models/
-    product.dart
-    user.dart
-    message.dart
 ```
+
+---
+
+## 🧩 Feature-Based Organization (CORE IDEA)
+
+The UI layer is organized **by feature**, not by file type.
+
+A **feature** represents a complete user functionality, such as:
+
+* Authentication
+* Search
+* Product detail
+* Create listing
+* Map
+
+Each feature contains:
+
+```text
+View (UI) + ViewModel (state + logic)
+```
+
+This follows Flutter’s recommendation that:
+
+* A view interacts with exactly one view model
+* A view model belongs to exactly one feature ([Flutter Documentation][2])
 
 ---
 
 ## 🔄 Data Flow
 
-The application follows this architecture flow:
-
 ```text
 View → ViewModel → Repository → Service
 ```
 
-* **Views** never access data directly
-* **ViewModels** handle UI state and logic
-* **Repositories** act as the single source of truth
-* **Services** communicate with external APIs
+* **View** → displays UI and sends user actions
+* **ViewModel** → manages state and logic
+* **Repository** → source of truth for data
+* **Service** → external APIs (Firebase, HTTP, etc.)
 
 ---
 
-## 🧩 Layers and Responsibilities
+## 🧭 Navigation
 
-### 🎨 Views (UI Layer)
+Navigation is centralized in:
 
-* Represent the UI using Flutter widgets
-* Display data provided by the ViewModel
-* Forward user interactions to the ViewModel
-* Contain minimal logic (only UI-related)
+```text
+ui/router/app_router.dart
+```
 
-Each View is typically a screen or feature.
+Responsibilities:
 
----
-
-### 🧠 ViewModels
-
-* Manage UI state
-* Contain business and presentation logic
-* Fetch data from repositories
-* Expose actions (commands) to the UI
-* Notify the UI using `ChangeNotifier`
-
-Flutter recommends a **one-to-one relationship between View and ViewModel** ([Flutter Documentation][1])
+* Define all app routes
+* Control navigation flow
+* Keep navigation logic separate from UI
 
 ---
 
-### 📦 Repositories (Data Layer)
+## 🧱 Layers Explained
 
-* Provide access to application data
-* Act as the **single source of truth**
-* Abstract data sources (API, local storage, etc.)
-* Can be reused across multiple ViewModels
+### 🎨 UI Layer (`ui/`)
 
----
+* Organized by **feature**
+* Contains:
 
-### 🌐 Services
-
-* Handle external communication
-* Call APIs or Firebase
-* Do not manage state
-* Are used by repositories
+  * Views (UI)
+  * ViewModels (logic + state)
+  * Router (navigation)
 
 ---
 
-### 🧱 Models
+### 📦 Data Layer (`data/`)
 
-* Represent data structures
-* Are independent from UI
-* Used across all layers
+Flutter defines repositories and services as the **data layer (Model in MVVM)** ([Flutter Documentation][1])
+
+#### Repositories
+
+* Single source of truth
+* Transform data for the app
+* Used by ViewModels
+
+#### Services
+
+* External communication (API, Firebase, sensors)
+* Stateless
+* Used by repositories
+
+---
+
+### 🧱 Models (`models/`)
+
+* Data structures (Product, User, Message)
+* Can include DTOs
+* Used across layers
+
+⚠️ Important:
+
+```text
+models/ ≠ Model layer
+```
+
+The **Model layer in MVVM = data layer (repositories + services)**
 
 ---
 
 ## 🔥 Key Principles
 
-### 1. UI = Function of State
-
-The UI reacts automatically to state changes.
-
----
-
-### 2. Separation of Concerns
-
-Each layer has a clearly defined role:
-
-```text
-View → UI
-ViewModel → Logic & State
-Repository → Data
-Service → External APIs
-```
-
----
-
-### 3. Single Source of Truth
-
-Repositories centralize application data, ensuring consistency.
-
----
-
-### 4. One View per ViewModel
-
-Each feature or screen is composed of:
-
-```text
-1 View + 1 ViewModel
-```
-
----
-
-### 5. Dependency Flow
-
-Each layer only depends on the layer below:
-
-```text
-View → ViewModel → Repository → Service
-```
-
-This ensures loose coupling and scalability ([Flutter Documentation][3])
-
----
-
-## ⚙️ State Management
-
-This project uses:
-
-👉 **Provider + ChangeNotifier**
-
-Because:
-
-* It integrates naturally with Flutter's MVVM approach
-* It allows reactive UI updates
-* It is recommended for medium-scale applications
-
----
-
-## 🚫 Anti-Patterns (Avoid)
-
-* Calling APIs directly from Views
-* Placing business logic inside Widgets
-* Overusing `setState` for global state
-* Skipping repositories and accessing services directly
-
----
-
-## 🎯 Goals of This Architecture
-
-* Scalability
-* Maintainability
-* Testability
-* Clear separation of responsibilities
+* Separation of concerns
+* UI = function of state
+* One View ↔ One ViewModel
+* Feature-based organization
+* Unidirectional data flow
 
 ---
 
 ## 🧠 Final Insight
 
-> The UI should only reflect state — never manage it.
-
----
-
-## 🚀 Future Improvements
-
-* Backend integration (Firebase / REST API)
-* Repository caching strategies
-* Error handling and loading states
-* Unit testing for ViewModels
+> Architecture is defined by how components interact, not by folder names.
 
 ---
 
 ## 📚 References
 
 * Flutter App Architecture Guide ([Flutter Documentation][1])
-* Flutter Architecture Recommendations ([Flutter Documentation][4])
-* Flutter Case Study (Compass App) ([Flutter Documentation][5])
-
----
+* Flutter Case Study ([Flutter Documentation][3])
 
 [1]: https://docs.flutter.dev/app-architecture/guide?utm_source=chatgpt.com "Guide to app architecture"
-[2]: https://docs.flutter.dev/app-architecture?utm_source=chatgpt.com "Architecting Flutter apps"
-[3]: https://docs.flutter.dev/app-architecture/case-study/dependency-injection?utm_source=chatgpt.com "Communicating between layers"
-[4]: https://docs.flutter.dev/app-architecture/recommendations?utm_source=chatgpt.com "Architecture recommendations and resources"
-[5]: https://docs.flutter.dev/app-architecture/case-study?utm_source=chatgpt.com "Architecture case study"
+[2]: https://docs.flutter.dev/app-architecture/case-study/dependency-injection?utm_source=chatgpt.com "Communicating between layers"
+[3]: https://docs.flutter.dev/app-architecture/case-study?utm_source=chatgpt.com "Architecture case study"
