@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'ui/router/app_router.dart';
 
 void main() {
@@ -10,11 +12,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Uniandes Marketplace',
-      debugShowCheckedModeBanner: false,
-
-      routerConfig: AppRouter.router,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
+      ],
+      child: MaterialApp.router(
+        title: 'Uniandes Marketplace',
+        debugShowCheckedModeBanner: false,
+        routerConfig: AppRouter.router,
+      ),
     );
   }
 }

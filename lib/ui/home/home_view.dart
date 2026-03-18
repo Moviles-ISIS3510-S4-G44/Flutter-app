@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -45,11 +47,25 @@ class _HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Feed'),
+    final viewModel = context.watch<HomeViewModel>();
+
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return ListView.builder(
+      itemCount: viewModel.listings.length,
+      itemBuilder: (context, index) {
+        final listing = viewModel.listings[index];
+
+        return ListTile(
+          title: Text(listing),
+        );
+      },
     );
   }
 }
+
 
 
 class _BottomNavBar extends StatelessWidget {
