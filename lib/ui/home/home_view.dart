@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
@@ -32,15 +33,12 @@ class _SearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'Search for items...',
           prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
         ),
       ),
     );
   }
 }
-
 
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
@@ -53,20 +51,22 @@ class _HomeBody extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return ListView.builder(
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.75,
+      ),
       itemCount: viewModel.listings.length,
       itemBuilder: (context, index) {
         final listing = viewModel.listings[index];
-
-        return ListTile(
-          title: Text(listing),
-        );
+        return ListingCard(listing: listing);
       },
     );
   }
 }
-
-
 
 class _BottomNavBar extends StatelessWidget {
   const _BottomNavBar();
@@ -75,7 +75,7 @@ class _BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: 0,
-      type: BottomNavigationBarType.fixed, 
+      type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.black,
       unselectedItemColor: Colors.grey,
       items: const [
