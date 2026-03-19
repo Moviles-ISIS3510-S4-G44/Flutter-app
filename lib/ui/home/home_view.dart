@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
-import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
 import 'package:provider/provider.dart';
 
