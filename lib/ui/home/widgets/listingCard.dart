@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/models/listing.dart';
 
-
 class ListingCard extends StatelessWidget {
   final Listing listing;
 
-  const ListingCard({super.key, required this.listing});
+  const ListingCard({
+    super.key,
+    required this.listing,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
+      elevation: 1,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Container(
               width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                color: Colors.grey[300],
+              color: Colors.grey[300],
+              child: const Icon(
+                Icons.image_outlined,
+                size: 50,
+                color: Colors.black54,
               ),
-              child: const Icon(Icons.image, size: 50),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -37,11 +41,31 @@ class ListingCard extends StatelessWidget {
                   listing.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Color(0xFF1F1F1F),
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(listing.price),
+                Text(
+                  listing.price,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Color(0xFF1F1F1F),
+                  ),
+                ),
                 const SizedBox(height: 4),
+                Text(
+                  listing.category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
             ),
           ),
