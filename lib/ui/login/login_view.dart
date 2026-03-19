@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 
+
 class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Login Marketplace',
-      theme: ThemeData(
-        primarySwatch: Colors.yellow,
-      ),
-      home: LoginPage(),
-    );
+    return LoginPage();
   }
 }
 
@@ -84,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Handle login
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 224, 220, 11),
+                    backgroundColor: Color(0xFFFFCC00),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
