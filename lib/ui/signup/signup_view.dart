@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 
-class LoginView extends StatelessWidget {
+class SignUpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return LoginPage();
+    return SignUpPage();
   }
 }
 
-class LoginPage extends StatefulWidget {
+class SignUpPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 49,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Handle login
+                    // Handle sign up
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFCC00),
@@ -118,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   child: Text(
-                    'Login',
+                    'SignUp',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
