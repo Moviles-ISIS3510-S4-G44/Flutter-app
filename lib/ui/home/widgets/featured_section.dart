@@ -5,10 +5,7 @@ import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart
 class FeaturedSection extends StatelessWidget {
   final List<ListingSummary> listings;
 
-  const FeaturedSection({
-    super.key,
-    required this.listings,
-  });
+  const FeaturedSection({super.key, required this.listings});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +40,7 @@ class FeaturedSection extends StatelessWidget {
 
               return SizedBox(
                 width: 170,
-                child: ListingCard(listing: listing),
+                child: ListingCard(listing: listing, showFeaturedBadge: true),
               );
             },
           ),

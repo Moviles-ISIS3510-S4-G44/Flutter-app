@@ -3,10 +3,12 @@ import 'package:marketplace_flutter_application/models/listings/listing_summary.
 
 class ListingCard extends StatelessWidget {
   final ListingSummary listing;
+  final bool showFeaturedBadge;
 
   const ListingCard({
     super.key,
     required this.listing,
+    this.showFeaturedBadge = false,
   });
 
   @override
@@ -22,23 +24,50 @@ class ListingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Image.network(
-              listing.imageUrl,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(
-                      Icons.image_outlined,
-                      size: 50,
-                      color: Colors.black54,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.network(
+                    listing.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_outlined,
+                            size: 50,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (showFeaturedBadge)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4D21F),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'Featured',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F1F1F),
+                        ),
+                      ),
                     ),
                   ),
-                );
-              },
+              ],
             ),
           ),
           Padding(
