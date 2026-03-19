@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:marketplace_flutter_application/models/listing.dart';
+import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 
 class ListingCard extends StatelessWidget {
-  final Listing listing;
+  final ListingSummary listing;
 
   const ListingCard({
     super.key,
@@ -22,14 +22,23 @@ class ListingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Container(
+            child: Image.network(
+              listing.imageUrl,
               width: double.infinity,
-              color: Colors.grey[300],
-              child: const Icon(
-                Icons.image_outlined,
-                size: 50,
-                color: Colors.black54,
-              ),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 50,
+                      color: Colors.black54,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           Padding(
