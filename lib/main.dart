@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/login/login_model.dart';
 import 'ui/router/app_router.dart';
 
 void main() {
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LoginModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
       ],
       child: MaterialApp.router(
