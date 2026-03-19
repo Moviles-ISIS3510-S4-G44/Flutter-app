@@ -43,7 +43,6 @@ class _SearchBar extends StatelessWidget {
     );
   }
 }
-
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
@@ -63,9 +62,9 @@ class _HomeBody extends StatelessWidget {
         mainAxisSpacing: 8,
         childAspectRatio: 0.75,
       ),
-      itemCount: viewModel.listings.length,
+      itemCount: viewModel.recentListings.length,
       itemBuilder: (context, index) {
-        final listing = viewModel.listings[index];
+        final listing = viewModel.recentListings[index];
         return ListingCard(listing: listing);
       },
     );
