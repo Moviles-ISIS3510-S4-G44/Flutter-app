@@ -20,8 +20,11 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => LoginModel()),
         ChangeNotifierProvider(create: (_) => SignUpModel()),
-        ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        ChangeNotifierProvider(create: (_) => ConnectivityModel(ConnectivityService()), child: MyApp(), );
+        ChangeNotifierProvider(create: (_) => HomeViewModel(ConnectivityService())..loadHomeData()),
+        ChangeNotifierProvider(
+          create: (_) => ConnectivityModel(ConnectivityService()),
+          child: MyApp(),
+        ),
       ],
       child: MaterialApp.router(
         title: 'Uniandes Marketplace',
