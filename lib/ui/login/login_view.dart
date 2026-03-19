@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:marketplace_flutter_application/ui/login/login_model.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -299,7 +302,16 @@ class _LoginPageState extends State<LoginPage> {
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                final vm = context.read<LoginModel>();
+                                await vm.login(
+                                  _usernameController.text.trim(),
+                                  _passwordController.text,
+                                );
+                                if (context.mounted) {
+                                  context.go('/');
+                                }
+                              },
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: primaryYellow,
@@ -368,25 +380,28 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                           const SizedBox(height: 28),
-                          Center(
-                            child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 14,
-                                  color: textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                children: [
-                                  TextSpan(text: "Don't have an account? "),
-                                  TextSpan(
-                                    text: 'Register',
-                                    style: TextStyle(
-                                      color: textPrimary,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                          GestureDetector(
+                            onTap: () => context.go('/signup'),
+                            child: Center(
+                              child: RichText(
+                                text: const TextSpan(
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
+                                  children: [
+                                    TextSpan(text: "Don't have an account? "),
+                                    TextSpan(
+                                      text: 'Register',
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
