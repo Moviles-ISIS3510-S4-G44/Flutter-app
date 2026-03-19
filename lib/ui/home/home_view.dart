@@ -3,6 +3,7 @@ import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
+import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
@@ -24,7 +25,7 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _BottomNavBar(),
+      bottomNavigationBar: const AppBottomNavBar(selectedIndex: 0),
       
     );
   }
@@ -119,87 +120,6 @@ class _HomeBody extends StatelessWidget {
           const SizedBox(height: 16),
         ],
       ),
-    );
-  }
-}
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 82,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      color: const Color(0xFFFFF0B8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          _NavItem(
-            icon: Icons.home,
-            label: 'Home',
-            isSelected: true,
-          ),
-          _NavItem(
-            icon: Icons.search,
-            label: 'Search',
-          ),
-          _NavItem(
-            icon: Icons.add,
-            label: 'Sell',
-          ),
-          _NavItem(
-            icon: Icons.chat_bubble_outline,
-            label: 'Messages',
-          ),
-          _NavItem(
-            icon: Icons.person_outline,
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFF3E39A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Icon(
-            icon,
-            size: 22,
-            color: const Color(0xFF1F1F1F),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF1F1F1F),
-          ),
-        ),
-      ],
     );
   }
 }
