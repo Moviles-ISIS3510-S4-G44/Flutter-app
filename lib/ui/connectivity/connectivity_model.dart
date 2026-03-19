@@ -1,32 +1,31 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import '../../data/services/connectivity_service.dart';
 
 class ConnectivityModel extends ChangeNotifier {
-  bool isLoading = false;
-  String? errorMessage;
+  final ConnectivityService _service;
 
-  Future<void> connectivity(String username, String password) async {
-    isLoading = true;
-    errorMessage = null;
-    notifyListeners();
+  ConnectivityStatus _status = ConnectivityStatus.offline;
+  ConnectivityStatus get status => _status;
 
-    try {
-      final connectivityService = ConnectivityService();
-      final isOnline = await connectivityService.isOnline;
+  bool get isOnline => _status == ConnectivityStatus.online;
 
-      if (isOnline) {
-        // Conectividad verificada
-      }
-      else {
-        // mostrar mensaje de error
-      }
+  StreamSubscription? _subscription;
 
-    } catch (e) {
-      errorMessage = 'Error al verificar conectividad';
-    } finally {
-      isLoading = false;
+  ConnectivityModel(this._service) {
+    _init();
+  }
+
+  void _init() {
+    _subscription = _service.statusStream.listen((status) {
+      _status = status;
       notifyListeners();
-    }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
