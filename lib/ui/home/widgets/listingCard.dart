@@ -86,13 +86,32 @@ class ListingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  listing.price,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Color(0xFF1F1F1F),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      listing.price,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Color(0xFF1F1F1F),
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 16,
+                      color: Color(0xFFF4D21F),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      listing.averageRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F1F1F),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
