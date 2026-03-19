@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpView extends StatelessWidget {
   const SignUpView({super.key});
@@ -324,25 +325,28 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           const SizedBox(height: 28),
-                          Center(
-                            child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 14,
-                                  color: textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                children: [
-                                  TextSpan(text: "Already have an account? "),
-                                  TextSpan(
-                                    text: 'Login',
-                                    style: TextStyle(
-                                      color: textPrimary,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                          GestureDetector(
+                            onTap: () => context.go('/login'),
+                            child: Center(
+                              child: RichText(
+                                text: const TextSpan(
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
+                                  children: [
+                                    TextSpan(text: "Already have an account? "),
+                                    TextSpan(
+                                      text: 'Login',
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
