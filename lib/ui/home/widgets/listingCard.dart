@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/models/listing.dart';
+
 
 class ListingCard extends StatelessWidget {
-  final String listing;
+  final Listing listing;
 
   const ListingCard({super.key, required this.listing});
 
@@ -14,7 +16,6 @@ class ListingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🖼 Imagen fake
           Expanded(
             child: Container(
               width: double.infinity,
@@ -33,18 +34,14 @@ class ListingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  listing,
+                  listing.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                const Text('\$50'),
+                Text(listing.price),
                 const SizedBox(height: 4),
-                const Text(
-                  'Uniandes',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
               ],
             ),
           ),
