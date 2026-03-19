@@ -18,7 +18,7 @@ class HomeView extends StatelessWidget {
             _SearchBar(),
             SizedBox(height: 8),
             CategoriesBar(),
-            SizedBox(height: 16),
+            SizedBox(height: 28),
             Expanded(child: _HomeBody()),
           ],
         ),
