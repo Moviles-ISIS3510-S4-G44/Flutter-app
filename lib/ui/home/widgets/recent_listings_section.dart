@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:marketplace_flutter_application/models/listing.dart';
+import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 
 class RecentListingsSection extends StatelessWidget {
-  final List<Listing> listings;
+  final List<ListingSummary> listings;
 
   const RecentListingsSection({
     super.key,
