@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +12,11 @@ class HomeView extends StatelessWidget {
     return const Scaffold(
       body: SafeArea(
         child: Column(
-          children: [
+          children: const [
             _SearchBar(),
+            SizedBox(height: 8),
+            CategoriesBar(),
+            SizedBox(height: 16),
             Expanded(child: _HomeBody()),
           ],
         ),
