@@ -11,9 +11,11 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+      backgroundColor:  Color(0xFFEEF2F7),
+      appBar: _HomeAppBar(),
       body: SafeArea(
         child: Column(
-          children: const [
+          children:  [
             _SearchBar(),
             SizedBox(height: 8),
             CategoriesBar(),
@@ -23,6 +25,32 @@ class HomeView extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: _BottomNavBar(),
+      
+    );
+  }
+}
+
+class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _HomeAppBar();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: const Color(0xFFEEF2F7),
+      elevation: 0,
+      centerTitle: false,
+      automaticallyImplyLeading: false,
+      title: const Text(
+        'University Marketplace',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1F1F1F),
+        ),
+      ),
     );
   }
 }
@@ -35,16 +63,41 @@ class _SearchBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextField(
+        style: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFF1F1F1F),
+        ),
         decoration: InputDecoration(
           hintText: 'Search for items...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+          hintStyle: const TextStyle(
+            fontSize: 14,
+            color: Color.fromARGB(255, 174, 183, 194),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 20,
+            color: Color.fromARGB(255, 174, 183, 194),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
   }
 }
-
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
@@ -74,17 +127,78 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: 0,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-        BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Sell'),
-        BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Messages'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    return Container(
+      height: 82,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      color: const Color(0xFFFFF0B8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          _NavItem(
+            icon: Icons.home,
+            label: 'Home',
+            isSelected: true,
+          ),
+          _NavItem(
+            icon: Icons.search,
+            label: 'Search',
+          ),
+          _NavItem(
+            icon: Icons.add,
+            label: 'Sell',
+          ),
+          _NavItem(
+            icon: Icons.chat_bubble_outline,
+            label: 'Messages',
+          ),
+          _NavItem(
+            icon: Icons.person_outline,
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    this.isSelected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFF3E39A) : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Icon(
+            icon,
+            size: 22,
+            color: const Color(0xFF1F1F1F),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1F1F1F),
+          ),
+        ),
       ],
     );
   }

@@ -8,7 +8,6 @@ class CategoriesBar extends StatefulWidget {
 }
 
 class _CategoriesBarState extends State<CategoriesBar> {
-  //Por ahora, porque no tengo backend, pero luego esto vendrá de la API
   final List<String> _categories = [
     'Books',
     'Electronics',
@@ -20,12 +19,12 @@ class _CategoriesBarState extends State<CategoriesBar> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 44,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final bool isSelected = index == _selectedIndex;
 
@@ -37,20 +36,27 @@ class _CategoriesBarState extends State<CategoriesBar> {
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFFF3E7B3) 
-                    : const Color(0xFFEDEDED), 
+                    ? const Color(0xFFF3E39A)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFFF3E39A)
+                      : const Color(0xFFF0F0F0),
+                ),
               ),
               child: Center(
                 child: Text(
                   _categories[index],
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: const Color(0xFF1F1F1F),
+                    fontWeight: FontWeight.w600,
+                    color: isSelected
+                        ? const Color(0xFF1F1F1F)
+                        : const Color.fromARGB(255, 174, 183, 194),
                   ),
                 ),
               ),
