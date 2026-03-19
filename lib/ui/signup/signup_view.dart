@@ -82,6 +82,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
