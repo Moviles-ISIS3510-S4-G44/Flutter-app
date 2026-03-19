@@ -34,13 +34,14 @@ class AppBottomNavBar extends StatelessWidget {
           ),
           _NavItem(
             icon: Icons.add,
-            label: 'Sell',
+            label: 'List',
             isSelected: selectedIndex == 2,
             onTap: () => onTap?.call(2),
+            isCenter: true,
           ),
           _NavItem(
             icon: Icons.chat_bubble_outline,
-            label: 'Messages',
+            label: 'Inbox',
             isSelected: selectedIndex == 3,
             onTap: () => onTap?.call(3),
           ),
@@ -61,12 +62,14 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isCenter;
 
   const _NavItem({
     required this.icon,
     required this.label,
     required this.isSelected,
     this.onTap,
+    this.isCenter = false,
   });
 
   @override
@@ -76,18 +79,32 @@ class _NavItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFF3E39A) : Colors.transparent,
-              borderRadius: BorderRadius.circular(999),
+          if (isCenter)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFD700),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.add,
+                size: 22,
+                color: Color(0xFF1F1F1F),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFF3E39A) : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: const Color(0xFF1F1F1F),
+              ),
             ),
-            child: Icon(
-              icon,
-              size: 22,
-              color: const Color(0xFF1F1F1F),
-            ),
-          ),
           const SizedBox(height: 4),
           Text(
             label,

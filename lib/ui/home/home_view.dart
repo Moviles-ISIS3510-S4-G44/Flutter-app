@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
@@ -6,27 +7,55 @@ import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
   @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<HomeViewModel>().loadProducts();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor:  Color(0xFFEEF2F7),
-      appBar: _HomeAppBar(),
+    return Scaffold(
+      backgroundColor: const Color(0xFFEEF2F7),
+      appBar: const _HomeAppBar(),
       body: SafeArea(
         child: Column(
-          children:  [
-            _SearchBar(),
-            SizedBox(height: 8),
-            CategoriesBar(),
-            SizedBox(height: 28),
-            Expanded(child: _HomeBody()),
+          children: [
+            GestureDetector(
+              onTap: () => context.push('/search'),
+              child: const _SearchBar(),
+            ),
+            const SizedBox(height: 8),
+            const CategoriesBar(),
+            const SizedBox(height: 28),
+            const Expanded(child: _HomeBody()),
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNavBar(selectedIndex: 0),
-      
+      bottomNavigationBar: AppBottomNavBar(
+        selectedIndex: 0,
+        onTap: (idx) {
+          switch (idx) {
+            case 1:
+              context.push('/search');
+            case 2:
+              context.push('/create');
+            // 3 is inbox, not done yet
+            case 4:
+              context.push('/profile');
+          }
+        },
+      ),
     );
   }
 }
@@ -63,42 +92,45 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: TextField(
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF1F1F1F),
-        ),
-        decoration: InputDecoration(
-          hintText: 'Search for items...',
-          hintStyle: const TextStyle(
+      child: AbsorbPointer(
+        child: TextField(
+          style: const TextStyle(
             fontSize: 14,
-            color: Color.fromARGB(255, 174, 183, 194),
+            color: Color(0xFF1F1F1F),
           ),
-          filled: true,
-          fillColor: Colors.white,
-          prefixIcon: const Icon(
-            Icons.search,
-            size: 20,
-            color: Color.fromARGB(255, 174, 183, 194),
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
+          decoration: InputDecoration(
+            hintText: 'Search for items...',
+            hintStyle: const TextStyle(
+              fontSize: 14,
+              color: Color.fromARGB(255, 174, 183, 194),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            prefixIcon: const Icon(
+              Icons.search,
+              size: 20,
+              color: Color.fromARGB(255, 174, 183, 194),
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
       ),
     );
   }
 }
+
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
