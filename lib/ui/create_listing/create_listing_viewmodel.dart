@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
 class CreateListingViewModel extends ChangeNotifier {
+  // Submission
+  final ListingRepository _listingRepository;
+  bool isSubmitting = false;
+  String? submitErrorMessage;
   //Categories
   final CategoryRepository _categoryRepository;
   bool isLoadingCategories = false;
@@ -24,8 +29,11 @@ class CreateListingViewModel extends ChangeNotifier {
   //Map
   String? location;
   // Constructor
-  CreateListingViewModel({CategoryRepository? categoryRepository})
-    : _categoryRepository = categoryRepository ?? CategoryRepository() {
+  CreateListingViewModel({
+    CategoryRepository? categoryRepository,
+    ListingRepository? listingRepository,
+  }) : _categoryRepository = categoryRepository ?? CategoryRepository(),
+       _listingRepository = listingRepository ?? ListingRepository() {
     loadCategories();
   }
 
