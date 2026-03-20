@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/config/app_config.dart';
 import 'package:marketplace_flutter_application/data/dtos/listing_dto.dart';
@@ -21,6 +22,7 @@ class ListingApiService {
           .map((json) => ListingDto.fromJson(json as Map<String, dynamic>))
           .toList();
     } else {
+      debugPrint('Failed to load listings: ${response.statusCode} - ${response.body}'); 
       throw Exception('Failed to load listings');
     }
   }

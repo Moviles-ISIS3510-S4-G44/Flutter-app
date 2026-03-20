@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/login/login_model.dart';
@@ -21,8 +22,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => LoginModel()),
         ChangeNotifierProvider(create: (_) => SignUpModel()),
-        ChangeNotifierProvider(create: (_) => HomeViewModel()),
-      ],
+        ChangeNotifierProvider(create: (_) => HomeViewModel(listingRepository: ListingRepository()),),
+        ],
       child: MaterialApp.router(
         title: 'Uniandes Marketplace',
         debugShowCheckedModeBanner: false,
