@@ -1,24 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
+import 'package:provider/provider.dart';
 
-class ListingConditionSection extends StatefulWidget {
+class ListingConditionSection extends StatelessWidget {
   const ListingConditionSection({super.key});
 
   @override
-  State<ListingConditionSection> createState() =>
-      _ListingConditionSectionState();
-}
-
-class _ListingConditionSectionState extends State<ListingConditionSection> {
-  final List<String> _conditions = [
-    'New',
-    'Like New',
-    'Used',
-  ];
-
-  int _selectedIndex = 1;
-
-  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<CreateListingViewModel>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,16 +25,16 @@ class _ListingConditionSectionState extends State<ListingConditionSection> {
           height: 40,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: _conditions.length,
+            itemCount: viewModel.conditions.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
-              final bool isSelected = index == _selectedIndex;
+              final condition = viewModel.conditions[index];
+              final bool isSelected =
+                  condition == viewModel.selectedCondition;
 
               return GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
+                  viewModel.selectCondition(condition);
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -63,7 +53,7 @@ class _ListingConditionSectionState extends State<ListingConditionSection> {
                   ),
                   child: Center(
                     child: Text(
-                      _conditions[index],
+                      condition,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

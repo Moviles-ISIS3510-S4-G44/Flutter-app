@@ -4,7 +4,16 @@ import 'package:marketplace_flutter_application/models/categories/category.dart'
 
 class CreateListingViewModel extends ChangeNotifier {
   final CategoryRepository _categoryRepository;
-
+  final List<String> conditions = [
+  'New',
+  'Like New',
+  'Used',
+  ];
+  String selectedCondition = 'Like New';
+  void selectCondition(String condition) {
+  selectedCondition = condition;
+  notifyListeners();
+  }
   CreateListingViewModel({
     CategoryRepository? categoryRepository,
   }) : _categoryRepository = categoryRepository ?? CategoryRepository() {
