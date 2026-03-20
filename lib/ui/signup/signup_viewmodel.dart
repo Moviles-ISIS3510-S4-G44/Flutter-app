@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../data/domains/auth/app_user.dart';
 
 class SignUpViewModel extends ChangeNotifier {
   final AuthRepository repository;
@@ -9,17 +8,18 @@ class SignUpViewModel extends ChangeNotifier {
 
   bool isLoading = false;
   String? errorMessage;
-  AppUser? currentUser;
-
-  bool get isAuthenticated => currentUser != null;
+  bool signupSuccess = false;
 
   Future<void> signup({
     required String name,
     required String email,
     required String password,
   }) async {
+    if (isLoading) return;
+
     isLoading = true;
     errorMessage = null;
+    signupSuccess = false;
     notifyListeners();
 
     try {
@@ -28,12 +28,20 @@ class SignUpViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
+
+      signupSuccess = true;
     } catch (e) {
       errorMessage = 'No se pudo crear la cuenta';
+      debugPrint('Signup error: $e');
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
+  void clearState() {
+    errorMessage = null;
+    signupSuccess = false;
+    notifyListeners();
+  }
 }
