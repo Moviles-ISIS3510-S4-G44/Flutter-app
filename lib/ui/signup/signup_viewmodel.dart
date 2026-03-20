@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/domains/auth/app_user.dart';
 
-class AuthViewModel extends ChangeNotifier {
+class SignupViewmodel extends ChangeNotifier {
   final AuthRepository repository;
 
-  AuthViewModel(this.repository);
+  SignupViewmodel(this.repository);
 
   bool isLoading = false;
   String? errorMessage;
@@ -36,19 +35,5 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  Future<void> loadSession() async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      currentUser = await repository.tryRestoreSession();
-    } catch (e) {
-      errorMessage = 'No se pudo restaurar la sesión';
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
+  
 }
