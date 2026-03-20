@@ -13,13 +13,15 @@ class ListingBasicDetailsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTextField(
+        _SectionTextField(
           hintText: 'Title (e.g., Organic Chemistry Textbook)',
+          onChanged: viewModel.updateTitle,
         ),
         const SizedBox(height: 16),
-        const _SectionTextField(
+        _SectionTextField(
           hintText: '\$ Price',
           keyboardType: TextInputType.number,
+          onChanged: viewModel.updatePrice,
         ),
         const SizedBox(height: 16),
         _CategoryDropdownField(viewModel: viewModel),
@@ -31,16 +33,19 @@ class ListingBasicDetailsSection extends StatelessWidget {
 class _SectionTextField extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
 
   const _SectionTextField({
     required this.hintText,
     this.keyboardType,
+    this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       keyboardType: keyboardType,
+      onChanged: onChanged,
       style: const TextStyle(
         fontSize: 15,
         color: Color(0xFF1F1F1F),

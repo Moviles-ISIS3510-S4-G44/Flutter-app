@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class ListingDescriptionSection extends StatelessWidget {
   const ListingDescriptionSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<CreateListingViewModel>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -19,13 +23,15 @@ class ListingDescriptionSection extends StatelessWidget {
         const SizedBox(height: 12),
         TextField(
           maxLines: 6,
+          onChanged: viewModel.updateDescription,
           style: const TextStyle(
             fontSize: 15,
             color: Color(0xFF1F1F1F),
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
-            hintText: 'Describe your item, its condition, and any important details...',
+            hintText:
+                'Describe your item, its condition, and any important details...',
             hintStyle: const TextStyle(
               fontSize: 15,
               color: Color(0xFF9AA4B2),
