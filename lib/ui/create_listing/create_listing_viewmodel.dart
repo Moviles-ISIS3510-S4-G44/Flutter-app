@@ -72,12 +72,28 @@ class CreateListingViewModel extends ChangeNotifier {
     selectedCategory = category;
     notifyListeners();
   }
-  // Images 
+
+  // Images
   Future<void> pickImageFromGallery() async {
     if (selectedImages.length >= maxImages) return;
 
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
+    );
+
+    if (image == null) return;
+
+    if (selectedImages.length < maxImages) {
+      selectedImages = [...selectedImages, image];
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickImageFromCamera() async {
+    if (selectedImages.length >= maxImages) return;
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
     );
 
     if (image == null) return;
