@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 
-class SignUpModel extends ChangeNotifier {
+class SignUpViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> SignUp(String username, String password) async {
+  Future<void> signUp(String username, String password) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();

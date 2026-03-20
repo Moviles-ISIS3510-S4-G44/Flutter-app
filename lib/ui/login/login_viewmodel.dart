@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class LoginModel extends ChangeNotifier {
+class LoginViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
