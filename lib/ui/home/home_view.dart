@@ -110,6 +110,18 @@ class _HomeBody extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            viewModel.errorMessage!,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

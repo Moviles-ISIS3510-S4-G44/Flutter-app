@@ -106,14 +106,6 @@ class ListingCard extends StatelessWidget {
                         color: Color(0xFFF4D21F),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        listing.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F1F1F),
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
