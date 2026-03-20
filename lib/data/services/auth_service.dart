@@ -14,20 +14,45 @@ class AuthService {
   final String _baseUrl = AppConfig.apiBaseUrl;
 
   Future<UserDto> signup(SignupDto dto) async {
-    final response = await _httpClient.post(
-      Uri.parse('$_baseUrl/auth/signup'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(dto.toJson()),
-    );
+    try {
+      final response = await _httpClient
+          .post(
+            Uri.parse('$_baseUrl/auth/signup'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(dto.toJson()),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 201) {
-      return UserDto.fromJson(jsonDecode(response.body));
-    } 
-    else {
-      debugPrint('Failed to signup: ${response.statusCode} - ${response.body}'); 
-      throw Exception('Failed to signup');
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        debugPrint('Signup successful');
+        return UserDto.fromJson(data);
+      }
+
+      //Manejo de errores específicos
+      if (response.statusCode == 400) {
+        throw Exception(data['detail'] ?? 'Invalid signup data');
+      }
+
+      if (response.statusCode == 409) {
+        throw Exception(data['detail'] ?? 'Email already registered');
+      }
+
+      if (response.statusCode == 422) {
+        throw Exception(data['detail'] ?? 'Invalid input data');
+      }
+
+      // Error genérico
+      throw Exception(data['detail'] ?? 'Unexpected error occurred');
+
+    } on TimeoutException {
+      throw Exception('Connection timeout. Try again.');
+    } catch (e) {
+      debugPrint('Failed to signup: $e');
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
 
