@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_basic_details_section.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_condition_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_image_picker_section.dart';
 
 import '../shared/widgets/app_bottom_nav_bar.dart';
@@ -48,6 +49,7 @@ class CreateListingView extends StatelessWidget {
               SizedBox(height: 24),
               ListingBasicDetailsSection(),
               SizedBox(height: 24),
+              ListingConditionSection(),
 
 
 
