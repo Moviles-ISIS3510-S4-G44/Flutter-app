@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'signup_viewmodel.dart';
 
 class SignUpView extends StatelessWidget {
   const SignUpView({super.key});
@@ -17,8 +19,10 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _usernameController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool obscurePassword = true;
 
@@ -31,9 +35,69 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (name.isEmpty) {
+      _showMessage('Please enter your full name');
+      return;
+    }
+
+    if (email.isEmpty) {
+      _showMessage('Please enter your university email');
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showMessage('Please enter a password');
+      return;
+    }
+
+    if (password.length < 8) {
+      _showMessage('Password must be at least 8 characters');
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match');
+      return;
+    }
+
+    final viewModel = context.read<SignUpViewModel>();
+
+    await viewModel.signup(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (viewModel.signupSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully. Please log in.'),
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   InputDecoration _inputDecoration({
@@ -119,6 +183,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    
+    final viewModel = context.watch<SignUpViewModel>();
+
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
@@ -183,7 +250,8 @@ class _SignUpPageState extends State<SignUpPage> {
                           _sectionLabel('FULL NAME'),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: _usernameController,
+                            // FIX #1: era _usernameController
+                            controller: _nameController,
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
@@ -203,7 +271,8 @@ class _SignUpPageState extends State<SignUpPage> {
                           _sectionLabel('UNIVERSITY EMAIL'),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: _usernameController,
+                            // FIX #1: era _usernameController
+                            controller: _emailController,
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
@@ -264,7 +333,8 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: _passwordController,
+                            // FIX #2: era _passwordController
+                            controller: _confirmPasswordController,
                             obscureText: obscurePassword,
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
@@ -296,7 +366,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              // FIX #3: era doble coma ,,
+                              onPressed: viewModel.isLoading ? null : _handleSignUp,
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: primaryYellow,
