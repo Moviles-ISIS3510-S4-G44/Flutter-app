@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
@@ -12,6 +13,17 @@ import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
+
+  void _onNavTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/Home');
+        break;
+      case 2:
+        context.go('/Sell');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +35,7 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            if (!connectivityModel.isOnline)
+             if (!connectivityModel.isOnline)
               const ConnectivityView(),
 
             _SearchBar(isOnline: connectivityModel.isOnline),
@@ -34,7 +46,10 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNavBar(selectedIndex: 0),
+      bottomNavigationBar: AppBottomNavBar(
+        selectedIndex: 0,
+        onTap: (index) => _onNavTap(context, index),
+      ),
     );
   }
 }
