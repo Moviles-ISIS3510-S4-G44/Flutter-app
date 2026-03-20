@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+
+class ListingDescriptionSection extends StatelessWidget {
+  const ListingDescriptionSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Item Description',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1F1F1F),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          maxLines: 6,
+          style: const TextStyle(
+            fontSize: 15,
+            color: Color(0xFF1F1F1F),
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Describe your item, its condition, and any important details...',
+            hintStyle: const TextStyle(
+              fontSize: 15,
+              color: Color(0xFF9AA4B2),
+              fontWeight: FontWeight.w400,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: Color(0xFFD6DCE5),
+                width: 1.4,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: Color(0xFFD6DCE5),
+                width: 1.4,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: Color(0xFFF3D13B),
+                width: 1.8,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
