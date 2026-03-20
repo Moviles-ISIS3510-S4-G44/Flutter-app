@@ -1,7 +1,7 @@
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
-import 'package:marketplace_flutter_application/data/dtos/auth/user_dto.dart';
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
+import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 
 class AuthRepository {
   final AuthService authService;
@@ -12,9 +12,7 @@ class AuthRepository {
     required this.tokenStorage,
   });
 
-  //Signup
-
-  Future<UserDto> signup({
+  Future<AppUser> signup({
     required String name,
     required String email,
     required String password,
@@ -27,7 +25,7 @@ class AuthRepository {
 
     final userDto = await authService.signup(dto);
 
-    return UserDto(
+    return AppUser(
       id: userDto.id,
       name: userDto.name,
       email: userDto.email,
@@ -35,9 +33,7 @@ class AuthRepository {
     );
   }
 
-  //Login
-
-  Future<UserDto> login({
+  Future<AppUser> login({
     required String email,
     required String password,
   }) async {
@@ -50,7 +46,7 @@ class AuthRepository {
 
     final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
 
-    return UserDto(
+    return AppUser(
       id: userDto.id,
       name: userDto.name,
       email: userDto.email,
@@ -58,15 +54,14 @@ class AuthRepository {
     );
   }
 
-  // Restaurar sesión
-  Future<UserDto?> tryRestoreSession() async {
+  Future<AppUser?> tryRestoreSession() async {
     final token = await tokenStorage.getToken();
     if (token == null) return null;
 
     try {
       final userDto = await authService.getCurrentUser(token);
 
-      return UserDto(
+      return AppUser(
         id: userDto.id,
         name: userDto.name,
         email: userDto.email,
