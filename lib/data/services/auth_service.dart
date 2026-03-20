@@ -32,8 +32,8 @@ class AuthService {
   }
 
   Future<TokenDto> login({
-  required String email,
-  required String password,
+    required String email,
+    required String password,
   }) async {
     try {
       final response = await _httpClient
@@ -68,6 +68,8 @@ class AuthService {
       if (response.statusCode == 422) {
         throw Exception('Invalid input data');
       }
+
+      // Error genérico del servidor
       throw Exception(data['detail'] ?? 'Unexpected error occurred');
 
     } on TimeoutException {
@@ -76,4 +78,21 @@ class AuthService {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
+
+    Future<UserDto> getCurrentUser(String token) async {
+      final response = await _httpClient.get(
+        Uri.parse('$_baseUrl/auth/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+  
+      if (response.statusCode == 200) {
+        return UserDto.fromJson(jsonDecode(response.body));
+      } 
+      else {
+        debugPrint('Failed to fetch current user: ${response.statusCode} - ${response.body}'); 
+        throw Exception('Failed to fetch current user');
+      }
+    }
 }
