@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
@@ -126,5 +127,65 @@ class CreateListingViewModel extends ChangeNotifier {
   void updateLocationFromCoordinates(double latitude, double longitude) {
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
     notifyListeners();
+  }
+
+  // Submission
+  Future<bool> submitListing() async {
+    if (selectedCategory == null) {
+      submitErrorMessage = 'Please select a category';
+      notifyListeners();
+      return false;
+    }
+
+    if (title.trim().isEmpty) {
+      submitErrorMessage = 'Title is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (price.trim().isEmpty) {
+      submitErrorMessage = 'Price is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (description.trim().isEmpty) {
+      submitErrorMessage = 'Description is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (location == null || location!.trim().isEmpty) {
+      submitErrorMessage = 'Location is required';
+      notifyListeners();
+      return false;
+    }
+
+    isSubmitting = true;
+    submitErrorMessage = null;
+    notifyListeners();
+
+    try {
+      final request = CreateListingRequest(
+        sellerId: '11111111-1111-1111-1111-111111111111',
+        categoryId: selectedCategory!.id,
+        title: title.trim(),
+        description: description.trim(),
+        price: price.trim(),
+        condition: selectedCondition,
+        images: const [],
+        status: 'active',
+        location: location!,
+      );
+
+      await _listingRepository.createListing(request);
+      return true;
+    } catch (error) {
+      submitErrorMessage = error.toString();
+      return false;
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
   }
 }
