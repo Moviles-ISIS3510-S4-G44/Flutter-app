@@ -37,6 +37,8 @@ dependencies:
   firebase_core: ^4.5.0
   go_router: ^17.1.0
   provider: ^6.1.5+1
+  http: ^1.6.0
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -100,3 +102,5 @@ flutter:
           weight: 500
         - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
+  assets:
+    - .env

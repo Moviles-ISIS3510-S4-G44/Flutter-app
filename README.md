@@ -58,10 +58,23 @@ lib/
     map/
       map_view.dart
       map_viewmodel.dart
-
-  data/
-    repositories/
+  
+    data/
     services/
+      auth/
+        auth_service.dart
+      listings/
+        listings_service.dart
+      users/
+        users_service.dart
+  
+    repositories/
+      auth/
+        auth_repository.dart
+      listings/
+        listings_repository.dart
+      users/
+        users_repository.dart
 
   models/
 ```
