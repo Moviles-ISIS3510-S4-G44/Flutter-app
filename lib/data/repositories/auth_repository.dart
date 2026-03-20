@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
-import 'package:marketplace_flutter_application/data/dtos/auth/user_dto.dart';
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
