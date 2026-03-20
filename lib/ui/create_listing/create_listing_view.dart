@@ -4,6 +4,7 @@ import 'package:marketplace_flutter_application/ui/create_listing/widgets/listin
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_condition_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_description_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_image_picker_section.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_location_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_submit_section.dart';
 
 import '../shared/widgets/app_bottom_nav_bar.dart';
@@ -52,6 +53,8 @@ class CreateListingView extends StatelessWidget {
               ListingBasicDetailsSection(),
               SizedBox(height: 24),
               ListingConditionSection(),
+              SizedBox(height: 24),
+              ListingLocationSection(),
               SizedBox(height: 24),
               ListingDescriptionSection(),
               SizedBox(height: 24),

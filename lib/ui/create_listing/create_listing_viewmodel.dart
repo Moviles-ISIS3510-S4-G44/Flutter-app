@@ -21,6 +21,8 @@ class CreateListingViewModel extends ChangeNotifier {
   String title = '';
   String price = '';
   String description = '';
+  //Map
+  String? location;
   // Constructor
   CreateListingViewModel({CategoryRepository? categoryRepository})
     : _categoryRepository = categoryRepository ?? CategoryRepository() {
@@ -108,6 +110,13 @@ class CreateListingViewModel extends ChangeNotifier {
     if (index < 0 || index >= selectedImages.length) return;
 
     selectedImages = List<XFile>.from(selectedImages)..removeAt(index);
+    notifyListeners();
+  }
+
+  //Map
+
+  void updateLocationFromCoordinates(double latitude, double longitude) {
+    location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
     notifyListeners();
   }
 }
