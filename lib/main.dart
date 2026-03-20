@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
@@ -20,8 +21,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LoginModel()),
-        ChangeNotifierProvider(create: (_) => SignUpModel()),
+        ChangeNotifierProvider(create: (context) => LoginViewModel(
+                                context.read<AuthRepository>(),),
+                              ),
+        ChangeNotifierProvider(create: (context) => SignUpViewModel(
+                                context.read<AuthRepository>(),),
+                              ),
         ChangeNotifierProvider(create: (_) => HomeViewModel(listingRepository: ListingRepository()),),
         ],
       child: MaterialApp.router(
