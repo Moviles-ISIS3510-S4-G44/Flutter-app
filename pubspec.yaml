@@ -102,3 +102,5 @@ flutter:
           weight: 500
         - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
+  assets:
+    - .env
