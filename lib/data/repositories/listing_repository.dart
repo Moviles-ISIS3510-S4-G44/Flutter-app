@@ -1,5 +1,5 @@
 import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
-import 'package:marketplace_flutter_application/data/dtos/listings/listing_detail.dart';
+import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
 import 'package:marketplace_flutter_application/data/dtos/listings/listing_dto.dart';
 import 'package:marketplace_flutter_application/data/services/listing_api_service.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
