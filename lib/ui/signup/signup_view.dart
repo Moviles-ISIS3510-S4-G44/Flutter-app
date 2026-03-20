@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'signup_viewmodel.dart';
 
 class SignUpView extends StatelessWidget {
@@ -96,7 +97,8 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       );
 
-      Navigator.pushReplacementNamed(context, '/login');
+      // Navega a login reemplazando signup en el stack
+      context.go('/login');
     }
   }
 
@@ -183,7 +185,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     final viewModel = context.watch<SignUpViewModel>();
 
     return Scaffold(
@@ -250,7 +251,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           _sectionLabel('FULL NAME'),
                           const SizedBox(height: 8),
                           TextField(
-                            // FIX #1: era _usernameController
                             controller: _nameController,
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
@@ -271,7 +271,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           _sectionLabel('UNIVERSITY EMAIL'),
                           const SizedBox(height: 8),
                           TextField(
-                            // FIX #1: era _usernameController
                             controller: _emailController,
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
@@ -333,7 +332,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            // FIX #2: era _passwordController
                             controller: _confirmPasswordController,
                             obscureText: obscurePassword,
                             style: const TextStyle(
@@ -366,7 +364,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              // FIX #3: era doble coma ,,
                               onPressed: viewModel.isLoading ? null : _handleSignUp,
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
@@ -395,25 +392,29 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           const SizedBox(height: 28),
+                          // Botón "Login" con navegación a /login
                           Center(
-                            child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 14,
-                                  color: textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                children: [
-                                  TextSpan(text: "Already have an account? "),
-                                  TextSpan(
-                                    text: 'Login',
-                                    style: TextStyle(
-                                      color: textPrimary,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                            child: GestureDetector(
+                              onTap: () => context.go('/login'),
+                              child: RichText(
+                                text: const TextSpan(
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
+                                  children: [
+                                    TextSpan(text: "Already have an account? "),
+                                    TextSpan(
+                                      text: 'Login',
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
