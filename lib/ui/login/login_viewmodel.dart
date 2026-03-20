@@ -28,8 +28,12 @@ class LoginViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
-    } catch (e) {
-      errorMessage = 'No se pudo iniciar sesión';
+      debugPrint('LOGIN OK');
+      debugPrint('Usuario: ${currentUser?.email}');
+    } catch (e, st) {
+      errorMessage = e.toString();
+      debugPrint('LOGIN ERROR: $e');
+      debugPrintStack(stackTrace: st);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -45,8 +49,10 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       currentUser = await repository.tryRestoreSession();
-    } catch (e) {
-      errorMessage = 'No se pudo restaurar la sesión';
+    } catch (e, st) {
+      errorMessage = e.toString();
+      debugPrint('Login error: $e');
+      debugPrintStack(stackTrace: st);
     } finally {
       isLoading = false;
       notifyListeners();
