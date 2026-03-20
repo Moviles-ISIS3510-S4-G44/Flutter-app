@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
@@ -51,10 +52,8 @@ class MyApp extends StatelessWidget {
             context.read<AuthRepository>(),
           ),
         ),
-        ChangeNotifierProvider<HomeViewModel>(
-          create: (context) => HomeViewModel(
-            listingRepository: context.read<ListingRepository>(),
-          ),
+        ChangeNotifierProvider(
+          create: (_) => HomeViewModel(connectivityService: ConnectivityService()),
         ),
       ],
       child: MaterialApp.router(
