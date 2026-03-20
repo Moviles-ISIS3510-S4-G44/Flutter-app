@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_basic_details_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_condition_section.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_description_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_image_picker_section.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_submit_section.dart';
 
 import '../shared/widgets/app_bottom_nav_bar.dart';
 
@@ -50,8 +52,10 @@ class CreateListingView extends StatelessWidget {
               ListingBasicDetailsSection(),
               SizedBox(height: 24),
               ListingConditionSection(),
-
-
+              SizedBox(height: 24),
+              ListingDescriptionSection(),
+              SizedBox(height: 24),
+              ListingSubmitSection(),
 
               SizedBox(height: 16),
             ],
