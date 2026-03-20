@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../login/login_viewmodel.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -120,6 +122,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<LoginViewModel>();
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
@@ -299,7 +302,20 @@ class _LoginPageState extends State<LoginPage> {
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: viewModel.isLoading
+                                  ? null
+                                  : () async {
+                                      await context.read<LoginViewModel>().login(
+                                        email: _usernameController.text.trim(),
+                                        password: _passwordController.text,
+                                      );
+
+                                      if (!mounted) return;
+
+                                      if (context.read<LoginViewModel>().isAuthenticated) {
+                                        Navigator.pushReplacementNamed(context, '/home');
+                                      }
+                                    },
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: primaryYellow,
@@ -308,24 +324,42 @@ class _LoginPageState extends State<LoginPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Text(
-                                    'LOGIN',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.8,
+                              child: viewModel.isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        Text(
+                                          'LOGIN',
+                                          style: TextStyle(
+                                            fontFamily: 'PlusJakartaSans',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        Icon(Icons.arrow_forward, size: 18),
+                                      ],
                                     ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  Icon(Icons.arrow_forward, size: 18),
-                                ],
-                              ),
                             ),
                           ),
+                          if (viewModel.errorMessage != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              viewModel.errorMessage!,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 30),
                           Row(
                             children: [
