@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/domains/auth/app_user.dart';
 
-class SignupViewmodel extends ChangeNotifier {
+class SignUpViewModel extends ChangeNotifier {
   final AuthRepository repository;
 
-  SignupViewmodel(this.repository);
+  SignUpViewModel(this.repository);
 
   bool isLoading = false;
   String? errorMessage;
@@ -35,5 +35,5 @@ class SignupViewmodel extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
 }
