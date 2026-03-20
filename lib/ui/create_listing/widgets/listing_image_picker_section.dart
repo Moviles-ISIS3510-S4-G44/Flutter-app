@@ -47,7 +47,7 @@ class ListingImagePickerSection extends StatelessWidget {
             itemBuilder: (context, index) {
               if (canAddMore && index == 0) {
                 return _AddPhotoCard(
-                  onTap: viewModel.pickImageFromGallery,
+                  onTap: () => _showImageSourceSheet(context, viewModel),
                 );
               }
 
@@ -71,6 +71,66 @@ class ListingImagePickerSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showImageSourceSheet(
+    BuildContext context,
+    CreateListingViewModel viewModel,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD6DCE5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Add Photo',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F1F1F),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _ImageSourceOption(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Take Photo',
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await viewModel.pickImageFromCamera();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ImageSourceOption(
+                  icon: Icons.photo_library_outlined,
+                  label: 'Choose from Gallery',
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await viewModel.pickImageFromGallery();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -176,6 +236,56 @@ class _PhotoPreviewCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ImageSourceOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ImageSourceOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: const Color(0xFFD6DCE5),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: const Color(0xFF1F1F1F),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1F1F1F),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
