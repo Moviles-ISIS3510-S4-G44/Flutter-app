@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -30,42 +31,49 @@ class AuthService {
     }
   }
 
-  Future<TokenDto> login({required String email, required String password}) 
-  async {
-    final response = await _httpClient.post(
-      Uri.parse('$_baseUrl/auth/login'),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
+  Future<TokenDto> login({
+  required String email,
+  required String password,
+  }) async {
+    try {
+      final response = await _httpClient
+          .post(
+            Uri.parse('$_baseUrl/auth/login'),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: {
+              'username': email,
+              'password': password,
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      return TokenDto.fromJson(jsonDecode(response.body));
-    } 
-    else {
-      debugPrint('Failed to login: ${response.statusCode} - ${response.body}'); 
-      throw Exception('Failed to login');
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        debugPrint('Login successful');
+        return TokenDto.fromJson(data);
+      }
+
+      //Manejo de errores específicos
+      if (response.statusCode == 401) {
+        throw Exception(data['detail'] ?? 'Incorrect email or password');
+      }
+
+      if (response.statusCode == 404) {
+        throw Exception('User not found');
+      }
+
+      if (response.statusCode == 422) {
+        throw Exception('Invalid input data');
+      }
+      throw Exception(data['detail'] ?? 'Unexpected error occurred');
+
+    } on TimeoutException {
+      throw Exception('Connection timeout. Try again.');
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
-
-    Future<UserDto> getCurrentUser(String token) async {
-      final response = await _httpClient.get(
-        Uri.parse('$_baseUrl/auth/me'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-  
-      if (response.statusCode == 200) {
-        return UserDto.fromJson(jsonDecode(response.body));
-      } 
-      else {
-        debugPrint('Failed to fetch current user: ${response.statusCode} - ${response.body}'); 
-        throw Exception('Failed to fetch current user');
-      }
-    }
 }
