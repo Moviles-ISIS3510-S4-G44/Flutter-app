@@ -35,7 +35,7 @@ class AuthService {
     final response = await _httpClient.post(
       Uri.parse('$_baseUrl/auth/login'),
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: jsonEncode({
         'email': email,
