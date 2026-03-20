@@ -4,8 +4,11 @@ import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/login/login_model.dart';
 import 'package:marketplace_flutter_application/ui/signup/signup_model.dart';
 import 'ui/router/app_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
 
-void main() {
   runApp(const MyApp());
 }
 
