@@ -5,8 +5,6 @@ class ListingSummary {
   final String category;
   final String imageUrl;
   final double averageRating;
-  final double? latitude;
-  final double? longitude;
 
   const ListingSummary({
     required this.id,
@@ -15,7 +13,5 @@ class ListingSummary {
     required this.category,
     required this.imageUrl,
     required this.averageRating,
-    this.latitude,
-    this.longitude,
   });
 }
