@@ -13,10 +13,10 @@ class HomeView extends StatelessWidget {
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
       case 0:
-        context.go('/');
+        context.go('/Home');
         break;
       case 2:
-        context.go('/sell');
+        context.go('/Sell');
         break;
     }
   }

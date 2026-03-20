@@ -7,14 +7,14 @@ import '../signup/signup_view.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/Home',
 
     routes: [
       GoRoute(path: '/login', builder: (context, state) => LoginPage()),
       GoRoute(path: '/signup', builder: (context, state) => SignUpPage()),
-      GoRoute(path: '/', builder: (context, state) => const HomeView()),
+      GoRoute(path: '/Home', builder: (context, state) => const HomeView()),
       GoRoute(
-        path: '/sell',
+        path: '/Sell',
         builder: (context, state) => const CreateListingView(),
       ),
     ],
