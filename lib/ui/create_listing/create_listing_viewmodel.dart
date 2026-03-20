@@ -10,6 +10,24 @@ class CreateListingViewModel extends ChangeNotifier {
   'Used',
   ];
   String selectedCondition = 'Like New';
+  String title = '';
+String price = '';
+String description = '';
+
+void updateTitle(String value) {
+  title = value;
+  notifyListeners();
+}
+
+void updatePrice(String value) {
+  price = value;
+  notifyListeners();
+}
+
+void updateDescription(String value) {
+  description = value;
+  notifyListeners();
+}
   void selectCondition(String condition) {
   selectedCondition = condition;
   notifyListeners();
