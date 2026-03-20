@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/config/app_config.dart';
-import 'package:marketplace_flutter_application/data/dtos/category_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/categories/category_dto.dart';
 
 class CategoryApiService {
   final http.Client _httpClient = http.Client();

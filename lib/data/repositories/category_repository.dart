@@ -1,4 +1,4 @@
-import 'package:marketplace_flutter_application/data/dtos/category_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/categories/category_dto.dart';
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
