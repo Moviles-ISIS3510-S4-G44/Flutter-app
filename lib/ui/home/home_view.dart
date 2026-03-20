@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
@@ -9,14 +10,25 @@ import 'package:provider/provider.dart';
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
+  void _onNavTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/');
+        break;
+      case 2:
+        context.go('/sell');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor:  Color(0xFFEEF2F7),
-      appBar: _HomeAppBar(),
-      body: SafeArea(
+    return Scaffold(
+      backgroundColor: const Color(0xFFEEF2F7),
+      appBar: const _HomeAppBar(),
+      body: const SafeArea(
         child: Column(
-          children:  [
+          children: [
             _SearchBar(),
             SizedBox(height: 8),
             CategoriesBar(),
@@ -25,8 +37,10 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNavBar(selectedIndex: 0),
-      
+      bottomNavigationBar: AppBottomNavBar(
+        selectedIndex: 0,
+        onTap: (index) => _onNavTap(context, index),
+      ),
     );
   }
 }
