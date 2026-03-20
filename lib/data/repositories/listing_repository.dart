@@ -1,4 +1,5 @@
-import 'package:marketplace_flutter_application/data/dtos/listing_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/listings/listing_detail.dart';
+import 'package:marketplace_flutter_application/data/dtos/listings/listing_dto.dart';
 import 'package:marketplace_flutter_application/data/services/listing_api_service.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 
@@ -23,4 +24,18 @@ class ListingRepository {
       imageUrl: dto.images.isNotEmpty ? dto.images[0] : '',
     );
   }
+  ListingDetail _toListingDetail(ListingDto dto) {
+  return ListingDetail(
+    id: dto.id,
+    sellerId: dto.sellerId,
+    categoryId: dto.categoryId,
+    title: dto.title,
+    description: dto.description,
+    price: dto.price,
+    condition: dto.condition,
+    images: dto.images,
+    status: dto.status,
+    location: dto.location,
+  );
+}
 }
