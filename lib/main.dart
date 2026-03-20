@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
-import 'package:marketplace_flutter_application/ui/login/login_model.dart';
-import 'package:marketplace_flutter_application/ui/signup/signup_model.dart';
+import 'package:marketplace_flutter_application/ui/login/login_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/signup/signup_viewmodel.dart';
 import 'ui/router/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future<void> main() async {
