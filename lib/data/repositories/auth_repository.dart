@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/auth/user_dto.dart';
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
@@ -38,13 +40,16 @@ class AuthRepository {
     required String password,
   }) async {
     final tokenResponse = await authService.login(
-      email: email,
-      password: password,
-    );
+        email: email,
+        password: password,
+      );
+      debugPrint('TOKEN: ${tokenResponse.accessToken}');
 
-    await tokenStorage.saveToken(tokenResponse.accessToken);
+      await tokenStorage.saveToken(tokenResponse.accessToken);
+      debugPrint('TOKEN GUARDADO');
 
-    final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
+      final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
+      debugPrint('ME OK: ${userDto.email}');
 
     return AppUser(
       id: userDto.id,
