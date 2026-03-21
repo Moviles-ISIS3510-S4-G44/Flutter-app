@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
@@ -11,21 +13,32 @@ class CreateListingViewModel extends ChangeNotifier {
   final ConnectivityService _connectivityService;
   // Submission
   final ListingRepository _listingRepository;
+  final AuthRepository _authRepository;
+
   bool isSubmitting = false;
   String? submitErrorMessage;
+
+  // Current user
+  AppUser? currentUser;
+  bool isLoadingUser = false;
+  String? userErrorMessage;
+
   // Categories
   final CategoryRepository _categoryRepository;
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
   List<Category> categories = [];
   Category? selectedCategory;
+
   // Conditions
   final List<String> conditions = ['New', 'Like New', 'Used'];
   String selectedCondition = 'Like New';
+
   // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
   final int maxImages = 5;
+
   // Basic info
   String title = '';
   String price = '';
@@ -38,6 +51,18 @@ class CreateListingViewModel extends ChangeNotifier {
     ConnectivityService? connectivityService,
     CategoryRepository? categoryRepository,
     ListingRepository? listingRepository,
+    required AuthRepository authRepository,
+  })  : _categoryRepository = categoryRepository ?? CategoryRepository(),
+        _listingRepository = listingRepository ?? ListingRepository(),
+        _authRepository = authRepository {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await Future.wait([
+      loadCategories(),
+      loadCurrentUser(),
+    ]);
   }) : _connectivityService = connectivityService ?? ConnectivityService(),
        _categoryRepository = categoryRepository ?? CategoryRepository(),
        _listingRepository = listingRepository ?? ListingRepository() {
@@ -62,6 +87,22 @@ class CreateListingViewModel extends ChangeNotifier {
   void selectCondition(String condition) {
     selectedCondition = condition;
     notifyListeners();
+  }
+
+  Future<void> loadCurrentUser() async {
+    isLoadingUser = true;
+    userErrorMessage = null;
+    notifyListeners();
+
+    try {
+      currentUser = await _authRepository.getMyProfile();
+    } catch (error) {
+      currentUser = null;
+      userErrorMessage = error.toString();
+    } finally {
+      isLoadingUser = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadCategories() async {
@@ -96,7 +137,6 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Images
   Future<void> pickImageFromGallery() async {
     if (selectedImages.length >= maxImages) return;
 
@@ -140,8 +180,9 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Submission
   Future<bool> submitListing() async {
+    if (currentUser == null) {
+      submitErrorMessage = 'Could not identify current user';
     if (!await _connectivityService.isOnline) {
       submitErrorMessage = 'No internet connection';
       notifyListeners();
@@ -184,7 +225,7 @@ class CreateListingViewModel extends ChangeNotifier {
 
     try {
       final request = CreateListingRequest(
-        sellerId: '019d0d7a-111e-75db-9008-576b19093e09',
+        sellerId: currentUser!.id,
         categoryId: selectedCategory!.id,
         title: title.trim(),
         description: description.trim(),
