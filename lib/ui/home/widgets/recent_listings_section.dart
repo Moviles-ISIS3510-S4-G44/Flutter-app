@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 
@@ -44,7 +45,12 @@ class RecentListingsSection extends StatelessWidget {
           itemCount: listings.length,
           itemBuilder: (context, index) {
             final listing = listings[index];
-            return ListingCard(listing: listing);
+            return ListingCard(
+              listing: listing,
+              onTap: () {
+                context.push('/listing-map/${listing.id}');
+              },
+            );
           },
         ),
       ],

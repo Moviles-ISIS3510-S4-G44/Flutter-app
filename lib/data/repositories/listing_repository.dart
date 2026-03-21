@@ -46,4 +46,8 @@ class ListingRepository {
       location: dto.location,
     );
   }
+  Future<ListingDetail> getListingById(String listingId) async {
+  final listingDto = await _listingApiService.getListingById(listingId);
+  return _toListingDetail(listingDto);
+}
 }
