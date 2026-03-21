@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
-
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
@@ -85,10 +83,13 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.read<HomeViewModel>();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextField(
         enabled: isOnline,
+        onChanged: viewModel.updateSearchQuery,
         style: const TextStyle(
           fontSize: 14,
           color: Color(0xFF1F1F1F),
@@ -133,6 +134,7 @@ class _HomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
+    final isSearching = viewModel.searchQuery.isNotEmpty;
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -154,14 +156,24 @@ class _HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TopInteractionsSection(
-            listings: viewModel.topInteractionListings,
-          ),
-          if (viewModel.topInteractionListings.isNotEmpty)
+          if (!isSearching) ...[
+            TopInteractionsSection(
+              listings: viewModel.topInteractionListings,
+            ),
+            if (viewModel.topInteractionListings.isNotEmpty)
+              const SizedBox(height: 24),
+            FeaturedSection(listings: viewModel.featuredListings),
             const SizedBox(height: 24),
-          FeaturedSection(listings: viewModel.featuredListings),
-          const SizedBox(height: 24),
-          RecentListingsSection(listings: viewModel.recentListings),
+          ],
+          if (isSearching && viewModel.filteredListings.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(
+                child: Text('No listings match your search'),
+              ),
+            )
+          else
+            RecentListingsSection(listings: viewModel.filteredListings),
           const SizedBox(height: 16),
         ],
       ),
