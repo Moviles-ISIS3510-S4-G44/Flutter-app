@@ -40,7 +40,14 @@ class MapViewModel extends ChangeNotifier {
 
   Future<void> _getCurrentLocation() async {
     try {
-      // chekc permissions first
+      // check if location services are on
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        print('location services disabled, using default bogota');
+        return;
+      }
+
+      // chekc permissions
       LocationPermission perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
@@ -48,10 +55,16 @@ class MapViewModel extends ChangeNotifier {
 
       if (perm == LocationPermission.denied ||
           perm == LocationPermission.deniedForever) {
+        print('location permission denied');
         return;
       }
 
-      final pos = await Geolocator.getCurrentPosition();
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
       currentLocation = LatLng(pos.latitude, pos.longitude);
     } catch (e) {
       // location failed, just use default bogota

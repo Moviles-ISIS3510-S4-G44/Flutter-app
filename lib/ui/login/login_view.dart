@@ -297,6 +297,20 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ],
                           ),
+                          // show error if login fails
+                          Builder(builder: (ctx) {
+                            final vm = ctx.watch<LoginModel>();
+                            if (vm.errorMessage != null) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  vm.errorMessage!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 13),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }),
                           const SizedBox(height: 22),
                           SizedBox(
                             width: double.infinity,
@@ -308,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
                                   _usernameController.text.trim(),
                                   _passwordController.text,
                                 );
-                                if (context.mounted) {
+                                if (context.mounted && vm.errorMessage == null) {
                                   context.go('/');
                                 }
                               },

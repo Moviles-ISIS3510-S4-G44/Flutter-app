@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/create_listing/pick_location_view.dart';
 
 class CreateListingView extends StatefulWidget {
   const CreateListingView({super.key});
@@ -23,7 +25,7 @@ class _CreateListingViewState extends State<CreateListingView> {
   static const Color textSecondary = Color(0xFF9A9A9A);
   static const Color borderColor = Color(0xFFE0E0E0);
 
-  final List<String> _categories = ['Books', 'Electronics', 'Furniture', 'Clothing', 'Other'];
+  final List<String> _categories = ['Textbooks', 'Electronics', 'Notes'];
   final List<String> _conditions = ['New', 'Like New', 'Used'];
 
   @override
@@ -81,7 +83,7 @@ class _CreateListingViewState extends State<CreateListingView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Photos section
+            // photos
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -191,20 +193,20 @@ class _CreateListingViewState extends State<CreateListingView> {
               ),
             ),
             const SizedBox(height: 24),
-            // Title field
+            // title
             _buildField(
               controller: _titleCtrl,
               hint: 'Title (e.g., Organic Chemistry Textbook)',
             ),
             const SizedBox(height: 16),
-            // Price field
+            // price
             _buildField(
               controller: _priceCtrl,
               hint: '\$ Price',
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            // Category dropdown
+            // category
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -234,8 +236,50 @@ class _CreateListingViewState extends State<CreateListingView> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            // location picker
+            GestureDetector(
+              onTap: () async {
+                final result = await Navigator.push<LatLng>(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PickLocationView()),
+                );
+                if (result != null) {
+                  vm.setLocation(result.latitude, result.longitude, 'Custom location');
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      vm.selectedLocationName != null ? Icons.location_on : Icons.location_on_outlined,
+                      color: vm.selectedLocationName != null ? textPrimary : textSecondary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        vm.selectedLocationName ?? 'Select Location',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 14,
+                          color: vm.selectedLocationName != null ? textPrimary : textSecondary,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: textSecondary, size: 20),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
-            // Condition selector
+            // condition
             const Text(
               'Condition',
               style: TextStyle(
@@ -279,7 +323,7 @@ class _CreateListingViewState extends State<CreateListingView> {
               }).toList(),
             ),
             const SizedBox(height: 24),
-            // Description field
+            // description
             TextField(
               controller: _descCtrl,
               maxLines: 4,
@@ -332,7 +376,7 @@ class _CreateListingViewState extends State<CreateListingView> {
               Text(vm.error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
             ],
             const SizedBox(height: 20),
-            // Post button
+            // post btn
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -344,7 +388,8 @@ class _CreateListingViewState extends State<CreateListingView> {
                           title: _titleCtrl.text.trim(),
                           description: _descCtrl.text.trim(),
                           price: _priceCtrl.text.trim(),
-                          category: _selectedCategory.isEmpty ? 'Other' : _selectedCategory,
+                          category: _selectedCategory.isEmpty ? 'Notes' : _selectedCategory,
+                          condition: _condition,
                         );
                         if (ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -455,13 +500,11 @@ class _CreateListingViewState extends State<CreateListingView> {
   }
 }
 
-// dashed border painter for the add photo box
+// dashed border painter, doesnt actually draw dashes lol
+// the container border handles it
 class _DashedBorderPainter extends CustomPainter {
   @override
-  void paint(Canvas canvas, Size size) {
-    // intentionally empty - the container border handles it
-    // just a placeholder for the dashed look
-  }
+  void paint(Canvas canvas, Size size) {}
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;

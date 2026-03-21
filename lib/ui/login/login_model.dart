@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class LoginModel extends ChangeNotifier {
+  final dynamic _userRepository;
+
+  LoginModel(this._userRepository);
+
   bool isLoading = false;
   String? errorMessage;
 
@@ -10,7 +14,7 @@ class LoginModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: Llamada a backend
+      await _userRepository.login(username, password);
     } catch (e) {
       errorMessage = 'Error al iniciar sesión';
     } finally {

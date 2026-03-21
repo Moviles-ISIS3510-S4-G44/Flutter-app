@@ -14,10 +14,21 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with RouteAware {
   @override
   void initState() {
     super.initState();
+    _loadProducts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // reload when coming back from another screen
+    _loadProducts();
+  }
+
+  void _loadProducts() {
     Future.microtask(() {
       context.read<HomeViewModel>().loadProducts();
     });
