@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../login/login_viewmodel.dart';
 
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
@@ -133,11 +134,8 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Banner de conectividad al tope
-            if (!connectivityModel.isOnline)
-              const ConnectivityView(),
+            if (!connectivityModel.isOnline) const ConnectivityView(),
 
-            // Contenido principal
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -309,7 +307,7 @@ class _LoginPageState extends State<LoginPage> {
                                   if (!mounted) return;
 
                                   if (context.read<LoginViewModel>().isAuthenticated) {
-                                    Navigator.pushReplacementNamed(context, '/home');
+                                    context.go('/Home');
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
@@ -374,7 +372,7 @@ class _LoginPageState extends State<LoginPage> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.8,
-                                color: Colors.grey.shade500,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
@@ -398,24 +396,27 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 28),
                       Center(
-                        child: RichText(
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              color: textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            children: [
-                              TextSpan(text: "Don't have an account? "),
-                              TextSpan(
-                                text: 'Register',
-                                style: TextStyle(
-                                  color: textPrimary,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                        child: GestureDetector(
+                          onTap: () => context.go('/signup'),
+                          child: RichText(
+                            text: const TextSpan(
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 14,
+                                color: textSecondary,
+                                fontWeight: FontWeight.w500,
                               ),
-                            ],
+                              children: [
+                                TextSpan(text: "Don't have an account? "),
+                                TextSpan(
+                                  text: 'Register',
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -426,7 +427,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
 
-            // Footer
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
