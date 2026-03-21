@@ -47,4 +47,22 @@ class ListingApiService {
 
     return ListingDto.fromJson(decodedBody);
   }
+  Future<ListingDto> getListingById(String listingId) async {
+  final response = await _httpClient.get(
+    Uri.parse('$_baseUrl/listings/$listingId'),
+    headers: {'Accept': 'application/json'},
+  );
+
+  if (response.statusCode != 200) {
+    debugPrint(
+      'Failed to load listing: ${response.statusCode} - ${response.body}',
+    );
+    throw Exception('Failed to load listing');
+  }
+
+  final Map<String, dynamic> decodedBody =
+      jsonDecode(response.body) as Map<String, dynamic>;
+
+  return ListingDto.fromJson(decodedBody);
+}
 }
