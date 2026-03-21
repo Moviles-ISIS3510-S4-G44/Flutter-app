@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
 
@@ -21,7 +25,12 @@ class _ListingDetailViewState extends State<ListingDetailView> {
   @override
   void initState() {
     super.initState();
-    _viewModel = ListingDetailViewModel();
+
+    _viewModel = ListingDetailViewModel(
+      listingRepository: context.read<ListingRepository>(),
+      interactionRepository: context.read<InteractionRepository>(),
+    );
+
     _viewModel.loadListing(widget.listingId);
   }
 
