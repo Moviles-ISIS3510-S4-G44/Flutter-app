@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
+import 'package:provider/provider.dart';
 
 class ListingDetailView extends StatefulWidget {
   final String listingId;
@@ -42,6 +45,8 @@ class _ListingDetailViewState extends State<ListingDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final connectivityModel = context.watch<ConnectivityModel>();
+
     return AnimatedBuilder(
       animation: _viewModel,
       builder: (context, _) {
@@ -53,13 +58,22 @@ class _ListingDetailViewState extends State<ListingDetailView> {
             ),
             title: const Text('Product Details'),
           ),
-          body: _buildBody(),
+          body: Column(
+            children: [
+              if (!connectivityModel.isOnline)
+                const ConnectivityView(),
+
+              Expanded(
+                child: _buildBody(connectivityModel.isOnline),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(bool isOnline) {
     if (_viewModel.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -95,13 +109,15 @@ class _ListingDetailViewState extends State<ListingDetailView> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Contact Seller próximamente'),
-                    ),
-                  );
-                },
+                onPressed: isOnline
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Contact Seller próximamente'),
+                          ),
+                        );
+                      }
+                    : null,
                 icon: const Icon(Icons.chat_bubble_outline),
                 label: const Text('Contact Seller'),
               ),
