@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
         ),
         Provider<ListingRepository>(create: (_) => ListingRepository()),
         ChangeNotifierProvider<LoginViewModel>(
-          create: (context) => LoginViewModel(context.read<AuthRepository>()),
+          create: (context) => LoginViewModel(connectivityService: ConnectivityService(), repository: context.read<AuthRepository>())
         ),
         ChangeNotifierProvider<SignUpViewModel>(
           create: (context) => SignUpViewModel(context.read<AuthRepository>()),
