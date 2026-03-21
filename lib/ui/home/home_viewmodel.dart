@@ -28,6 +28,13 @@ class HomeViewModel extends ChangeNotifier {
   List<ListingSummary> filteredListings = [];
   List<ListingSummary> topInteractionListings = [];
 
+  List<ListingSummary> get displayedListings {
+    if (searchQuery.isEmpty) {
+      return recentListings;
+    }
+    return filteredListings;
+  }
+
   Future<void> loadListings() async {
     isLoading = true;
     errorMessage = null;
@@ -74,13 +81,9 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     final scoredListings = recentListings.map((listing) {
-      final titleScore = weightedRatio(searchQuery, listing.title);
-      final categoryScore = weightedRatio(searchQuery, listing.category);
-      final score = titleScore > categoryScore ? titleScore : categoryScore;
-
       return {
         'listing': listing,
-        'score': score,
+        'score': _calculateListingScore(listing),
       };
     }).toList();
 
@@ -95,5 +98,12 @@ class HomeViewModel extends ChangeNotifier {
         .toList();
 
     notifyListeners();
+  }
+
+  int _calculateListingScore(ListingSummary listing) {
+    final titleScore = weightedRatio(searchQuery, listing.title);
+    final categoryScore = weightedRatio(searchQuery, listing.category);
+
+    return (titleScore * 0.8 + categoryScore * 0.2).round();
   }
 }
