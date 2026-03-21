@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
-
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
@@ -85,10 +83,13 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.read<HomeViewModel>();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextField(
         enabled: isOnline,
+        onChanged: viewModel.updateSearchQuery,
         style: const TextStyle(
           fontSize: 14,
           color: Color(0xFF1F1F1F),
@@ -161,7 +162,7 @@ class _HomeBody extends StatelessWidget {
             const SizedBox(height: 24),
           FeaturedSection(listings: viewModel.featuredListings),
           const SizedBox(height: 24),
-          RecentListingsSection(listings: viewModel.recentListings),
+          RecentListingsSection(listings: viewModel.filteredListings),
           const SizedBox(height: 16),
         ],
       ),

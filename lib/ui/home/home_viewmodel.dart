@@ -1,171 +1,109 @@
-import 'package:flutter/material.dart';
-import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
-import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
-import 'package:go_router/go_router.dart';
-import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
-import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
-import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
-import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
-import 'package:marketplace_flutter_application/ui/home/widgets/top_interactions_section.dart';
-import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:fuzzywuzzy/fuzzywuzzy.dart';
+import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
+import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class HomeViewModel extends ChangeNotifier {
+  final ConnectivityService connectivityService;
+  final ListingRepository _listingRepository;
+  final InteractionRepository _interactionRepository;
 
-  void _onNavTap(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go('/Home');
-        break;
-      case 2:
-        context.go('/Sell');
-        break;
+  HomeViewModel({
+    required this.connectivityService,
+    ListingRepository? listingRepository,
+    required InteractionRepository interactionRepository,
+  })  : _listingRepository = listingRepository ?? ListingRepository(),
+        _interactionRepository = interactionRepository {
+    loadListings();
+  }
+
+  bool isLoading = false;
+  String? errorMessage;
+  String searchQuery = '';
+
+  List<ListingSummary> featuredListings = [];
+  List<ListingSummary> recentListings = [];
+  List<ListingSummary> filteredListings = [];
+  List<ListingSummary> topInteractionListings = [];
+
+  List<ListingSummary> get displayedListings {
+    if (searchQuery.isEmpty) {
+      return recentListings;
     }
+    return filteredListings;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final connectivityModel = context.watch<ConnectivityModel>();
+  Future<void> loadListings() async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFEEF2F7),
-      appBar: const _HomeAppBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (!connectivityModel.isOnline) const ConnectivityView(),
-            _SearchBar(isOnline: connectivityModel.isOnline),
-            const SizedBox(height: 8),
-            const CategoriesBar(),
-            const SizedBox(height: 28),
-            const Expanded(child: _HomeBody()),
-          ],
-        ),
-      ),
-      bottomNavigationBar: AppBottomNavBar(
-        selectedIndex: 0,
-        onTap: (index) => _onNavTap(context, index),
-      ),
-    );
-  }
-}
+    try {
+      final listings = await _listingRepository.getListings();
 
-class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _HomeAppBar();
-
-  @override
-  Size get preferredSize => const Size.fromHeight(56);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: const Color(0xFFEEF2F7),
-      elevation: 0,
-      centerTitle: false,
-      automaticallyImplyLeading: false,
-      title: const Text(
-        'University Marketplace',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF1F1F1F),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  final bool isOnline;
-
-  const _SearchBar({required this.isOnline});
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = context.read<HomeViewModel>();
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextField(
-        enabled: isOnline,
-        onChanged: viewModel.updateSearchQuery,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF1F1F1F),
-        ),
-        decoration: InputDecoration(
-          hintText: isOnline
-              ? 'Search for items...'
-              : 'Search unavailable offline',
-          hintStyle: const TextStyle(
-            fontSize: 14,
-            color: Color.fromARGB(255, 174, 183, 194),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          prefixIcon: const Icon(
-            Icons.search,
-            size: 20,
-            color: Color.fromARGB(255, 174, 183, 194),
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeBody extends StatelessWidget {
-  const _HomeBody();
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = context.watch<HomeViewModel>();
-
-    if (viewModel.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      featuredListings = listings.take(5).toList();
+      recentListings = listings;
+      filteredListings = listings;
+    } catch (error) {
+      errorMessage = error.toString();
+      featuredListings = [];
+      recentListings = [];
+      filteredListings = [];
+      topInteractionListings = [];
+      isLoading = false;
+      notifyListeners();
+      return;
     }
 
-    if (viewModel.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            viewModel.errorMessage!,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
+    try {
+      final topIds = await _interactionRepository.getTopInteractedListingIds();
+
+      topInteractionListings =
+          recentListings.where((listing) => topIds.contains(listing.id)).toList();
+    } catch (error) {
+      debugPrint('Failed to load top interactions: $error');
+      topInteractionListings = [];
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TopInteractionsSection(
-            listings: viewModel.topInteractionListings,
-          ),
-          if (viewModel.topInteractionListings.isNotEmpty)
-            const SizedBox(height: 24),
-          FeaturedSection(listings: viewModel.featuredListings),
-          const SizedBox(height: 24),
-          RecentListingsSection(listings: viewModel.recentListings),
-          const SizedBox(height: 16),
-        ],
-      ),
+    isLoading = false;
+    notifyListeners();
+  }
+
+  void updateSearchQuery(String query) {
+    searchQuery = query.trim();
+
+    if (searchQuery.isEmpty) {
+      filteredListings = recentListings;
+      notifyListeners();
+      return;
+    }
+
+    final scoredListings = recentListings.map((listing) {
+      return {
+        'listing': listing,
+        'score': _calculateListingScore(listing),
+      };
+    }).toList();
+
+    scoredListings.removeWhere((item) => (item['score'] as int) < 55);
+
+    scoredListings.sort(
+      (a, b) => (b['score'] as int).compareTo(a['score'] as int),
     );
+
+    filteredListings = scoredListings
+        .map((item) => item['listing'] as ListingSummary)
+        .toList();
+
+    notifyListeners();
+  }
+
+  int _calculateListingScore(ListingSummary listing) {
+    final titleScore = weightedRatio(searchQuery, listing.title);
+    final categoryScore = weightedRatio(searchQuery, listing.category);
+
+    return (titleScore * 0.8 + categoryScore * 0.2).round();
   }
 }
