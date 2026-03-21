@@ -14,8 +14,8 @@ class HomeViewModel extends ChangeNotifier {
     required this.connectivityService,
     ListingRepository? listingRepository,
     required InteractionRepository interactionRepository,
-  })  : _listingRepository = listingRepository ?? ListingRepository(),
-        _interactionRepository = interactionRepository {
+  }) : _listingRepository = listingRepository ?? ListingRepository(),
+       _interactionRepository = interactionRepository {
     loadListings();
   }
 
@@ -60,8 +60,9 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final topIds = await _interactionRepository.getTopInteractedListingIds();
 
-      topInteractionListings =
-          recentListings.where((listing) => topIds.contains(listing.id)).toList();
+      topInteractionListings = recentListings
+          .where((listing) => topIds.contains(listing.id))
+          .toList();
     } catch (error) {
       debugPrint('Failed to load top interactions: $error');
       topInteractionListings = [];
@@ -81,10 +82,7 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     final scoredListings = recentListings.map((listing) {
-      return {
-        'listing': listing,
-        'score': _calculateListingScore(listing),
-      };
+      return {'listing': listing, 'score': _calculateListingScore(listing)};
     }).toList();
 
     scoredListings.removeWhere((item) => (item['score'] as int) < 55);
@@ -101,9 +99,28 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   int _calculateListingScore(ListingSummary listing) {
-    final titleScore = weightedRatio(searchQuery, listing.title);
-    final categoryScore = weightedRatio(searchQuery, listing.category);
+    final query = searchQuery.toLowerCase().trim();
+    final title = listing.title.toLowerCase();
+    final category = listing.category.toLowerCase();
 
-    return (titleScore * 0.8 + categoryScore * 0.2).round();
+    if (title.contains(query)) {
+      return 100;
+    }
+
+    if (category.contains(query)) {
+      return 85;
+    }
+
+    final titleWords = title.split(' ');
+    for (final word in titleWords) {
+      if (word.contains(query)) {
+        return 95;
+      }
+    }
+
+    final titleScore = weightedRatio(query, title);
+    final categoryScore = weightedRatio(query, category);
+
+    return titleScore > categoryScore ? titleScore : categoryScore;
   }
 }
