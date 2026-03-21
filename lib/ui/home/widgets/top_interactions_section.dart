@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart';
 
@@ -41,7 +42,12 @@ class TopInteractionsSection extends StatelessWidget {
 
                 return SizedBox(
                   width: 190,
-                  child: ListingCard(listing: listing),
+                  child: ListingCard(
+                    listing: listing,
+                    onTap: () {
+                      context.push('/listing-map/${listing.id}');
+                    },
+                  ),
                 );
               },
             ),
