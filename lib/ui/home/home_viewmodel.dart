@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
@@ -68,14 +69,30 @@ class HomeViewModel extends ChangeNotifier {
 
     if (searchQuery.isEmpty) {
       filteredListings = recentListings;
-    } else {
-      final normalizedQuery = searchQuery.toLowerCase();
-
-      filteredListings = recentListings.where((listing) {
-        return listing.title.toLowerCase().contains(normalizedQuery) ||
-            listing.category.toLowerCase().contains(normalizedQuery);
-      }).toList();
+      notifyListeners();
+      return;
     }
+
+    final scoredListings = recentListings.map((listing) {
+      final titleScore = weightedRatio(searchQuery, listing.title);
+      final categoryScore = weightedRatio(searchQuery, listing.category);
+      final score = titleScore > categoryScore ? titleScore : categoryScore;
+
+      return {
+        'listing': listing,
+        'score': score,
+      };
+    }).toList();
+
+    scoredListings.removeWhere((item) => (item['score'] as int) < 55);
+
+    scoredListings.sort(
+      (a, b) => (b['score'] as int).compareTo(a['score'] as int),
+    );
+
+    filteredListings = scoredListings
+        .map((item) => item['listing'] as ListingSummary)
+        .toList();
 
     notifyListeners();
   }
