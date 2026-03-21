@@ -26,7 +26,7 @@ class _ConnectivityViewState extends State<ConnectivityView> {
               'You are offline. This app requires an internet connection for this feature.',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 14,
               ),
             ),
