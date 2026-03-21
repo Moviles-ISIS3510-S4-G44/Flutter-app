@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ class ListingSubmitSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<CreateListingViewModel>();
+    final connectivityModel = context.watch<ConnectivityModel>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -34,7 +36,7 @@ class ListingSubmitSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: viewModel.isSubmitting
+            onPressed: (viewModel.isSubmitting || !connectivityModel.isOnline)
                 ? null
                 : () async {
                     final success = await context

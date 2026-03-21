@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/map_listing/map_listing_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/map_listing/widgets/map_listing_preview_card.dart';
+import 'package:provider/provider.dart';
 
 class MapListingView extends StatefulWidget {
   final String listingId;
@@ -34,6 +37,8 @@ class _MapListingViewState extends State<MapListingView> {
 
   @override
   Widget build(BuildContext context) {
+    final connectivityModel = context.watch<ConnectivityModel>();
+
     return AnimatedBuilder(
       animation: _viewModel,
       builder: (context, _) {
@@ -45,7 +50,16 @@ class _MapListingViewState extends State<MapListingView> {
             ),
             title: const Text('Listing Location'),
           ),
-          body: _buildBody(context),
+          body: Column(
+            children: [
+              if (!connectivityModel.isOnline)
+                const ConnectivityView(),
+
+              Expanded(
+                child: _buildBody(context),
+              ),
+            ],
+          ),
         );
       },
     );
