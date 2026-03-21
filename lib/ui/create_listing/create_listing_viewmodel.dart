@@ -9,50 +9,42 @@ import 'package:marketplace_flutter_application/data/services/connectivity_servi
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
 class CreateListingViewModel extends ChangeNotifier {
-  // Connectivity
   final ConnectivityService _connectivityService;
-  // Submission
   final ListingRepository _listingRepository;
   final AuthRepository _authRepository;
+  final CategoryRepository _categoryRepository;
 
   bool isSubmitting = false;
   String? submitErrorMessage;
 
-  // Current user
   AppUser? currentUser;
   bool isLoadingUser = false;
   String? userErrorMessage;
 
-  // Categories
-  final CategoryRepository _categoryRepository;
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
   List<Category> categories = [];
   Category? selectedCategory;
 
-  // Conditions
   final List<String> conditions = ['New', 'Like New', 'Used'];
   String selectedCondition = 'Like New';
 
-  // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
   final int maxImages = 5;
 
-  // Basic info
   String title = '';
   String price = '';
   String description = '';
-  // Map
   String? location;
 
-  // Constructor
   CreateListingViewModel({
     ConnectivityService? connectivityService,
     CategoryRepository? categoryRepository,
     ListingRepository? listingRepository,
     required AuthRepository authRepository,
-  })  : _categoryRepository = categoryRepository ?? CategoryRepository(),
+  })  : _connectivityService = connectivityService ?? ConnectivityService(),
+        _categoryRepository = categoryRepository ?? CategoryRepository(),
         _listingRepository = listingRepository ?? ListingRepository(),
         _authRepository = authRepository {
     _initialize();
@@ -63,10 +55,6 @@ class CreateListingViewModel extends ChangeNotifier {
       loadCategories(),
       loadCurrentUser(),
     ]);
-  }) : _connectivityService = connectivityService ?? ConnectivityService(),
-       _categoryRepository = categoryRepository ?? CategoryRepository(),
-       _listingRepository = listingRepository ?? ListingRepository() {
-    loadCategories();
   }
 
   void updateTitle(String value) {
@@ -174,17 +162,20 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Map
   void updateLocationFromCoordinates(double latitude, double longitude) {
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
     notifyListeners();
   }
 
   Future<bool> submitListing() async {
-    if (currentUser == null) {
-      submitErrorMessage = 'Could not identify current user';
     if (!await _connectivityService.isOnline) {
       submitErrorMessage = 'No internet connection';
+      notifyListeners();
+      return false;
+    }
+
+    if (currentUser == null) {
+      submitErrorMessage = 'Could not identify current user';
       notifyListeners();
       return false;
     }
