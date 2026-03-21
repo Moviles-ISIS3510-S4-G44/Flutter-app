@@ -17,6 +17,7 @@ class ListingApiService {
     );
 
     if (response.statusCode == 200) {
+      debugPrint('RAW BODY: ${response.body}');
       final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
 
       return jsonList

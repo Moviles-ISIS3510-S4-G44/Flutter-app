@@ -3,14 +3,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
 class CreateListingViewModel extends ChangeNotifier {
+  // Connectivity
+  final ConnectivityService _connectivityService;
   // Submission
   final ListingRepository _listingRepository;
   bool isSubmitting = false;
   String? submitErrorMessage;
-  //Categories
+  // Categories
   final CategoryRepository _categoryRepository;
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
@@ -19,21 +22,24 @@ class CreateListingViewModel extends ChangeNotifier {
   // Conditions
   final List<String> conditions = ['New', 'Like New', 'Used'];
   String selectedCondition = 'Like New';
-  //Images
+  // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
   final int maxImages = 5;
-  //Basic info
+  // Basic info
   String title = '';
   String price = '';
   String description = '';
-  //Map
+  // Map
   String? location;
+
   // Constructor
   CreateListingViewModel({
+    ConnectivityService? connectivityService,
     CategoryRepository? categoryRepository,
     ListingRepository? listingRepository,
-  }) : _categoryRepository = categoryRepository ?? CategoryRepository(),
+  }) : _connectivityService = connectivityService ?? ConnectivityService(),
+       _categoryRepository = categoryRepository ?? CategoryRepository(),
        _listingRepository = listingRepository ?? ListingRepository() {
     loadCategories();
   }
@@ -59,6 +65,12 @@ class CreateListingViewModel extends ChangeNotifier {
   }
 
   Future<void> loadCategories() async {
+    if (!await _connectivityService.isOnline) {
+      categoriesErrorMessage = 'No internet connection';
+      notifyListeners();
+      return;
+    }
+
     isLoadingCategories = true;
     categoriesErrorMessage = null;
     notifyListeners();
@@ -122,8 +134,7 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Map
-
+  // Map
   void updateLocationFromCoordinates(double latitude, double longitude) {
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
     notifyListeners();
@@ -131,6 +142,12 @@ class CreateListingViewModel extends ChangeNotifier {
 
   // Submission
   Future<bool> submitListing() async {
+    if (!await _connectivityService.isOnline) {
+      submitErrorMessage = 'No internet connection';
+      notifyListeners();
+      return false;
+    }
+
     if (selectedCategory == null) {
       submitErrorMessage = 'Please select a category';
       notifyListeners();
