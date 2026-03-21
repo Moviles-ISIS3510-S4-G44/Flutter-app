@@ -167,7 +167,7 @@ class CreateListingViewModel extends ChangeNotifier {
 
     try {
       final request = CreateListingRequest(
-        sellerId: '11111111-1111-1111-1111-111111111111',
+        sellerId: '019d0d7a-111e-75db-9008-576b19093e09',
         categoryId: selectedCategory!.id,
         title: title.trim(),
         description: description.trim(),

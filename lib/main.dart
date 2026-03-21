@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
@@ -33,9 +34,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthService>(
-          create: (_) => AuthService(),
+        Provider<ConnectivityService>(create: (_) => ConnectivityService()),
+
+        ChangeNotifierProvider<ConnectivityModel>(
+          create: (context) =>
+              ConnectivityModel(context.read<ConnectivityService>()),
         ),
+        Provider<AuthService>(create: (_) => AuthService()),
         Provider<TokenStorage>(
           create: (_) => TokenStorage(const FlutterSecureStorage()),
         ),
@@ -45,23 +50,23 @@ class MyApp extends StatelessWidget {
             tokenStorage: context.read<TokenStorage>(),
           ),
         ),
-        Provider<ListingRepository>(
-          create: (_) => ListingRepository(),
-        ),
+        Provider<ListingRepository>(create: (_) => ListingRepository()),
         ChangeNotifierProvider<LoginViewModel>(
-          create: (context) => LoginViewModel(
-            context.read<AuthRepository>(),
-          ),
+          create: (context) => LoginViewModel(context.read<AuthRepository>()),
         ),
         ChangeNotifierProvider<SignUpViewModel>(
-          create: (context) => SignUpViewModel(
-            context.read<AuthRepository>(),
+          create: (context) => SignUpViewModel(context.read<AuthRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => HomeViewModel(
+            connectivityService: ConnectivityService(),
+            listingRepository: ListingRepository(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => HomeViewModel(connectivityService: ConnectivityService(), listingRepository: ListingRepository()),
+          create: (_) =>
+              CreateListingViewModel(categoryRepository: CategoryRepository()),
         ),
-        ChangeNotifierProvider(create: (_) => CreateListingViewModel(categoryRepository: CategoryRepository())),
       ],
 
       child: MaterialApp.router(
@@ -72,4 +77,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
