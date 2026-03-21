@@ -8,6 +8,7 @@ import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
+import 'package:marketplace_flutter_application/ui/home/widgets/top_interactions_section.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -35,9 +36,7 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-             if (!connectivityModel.isOnline)
-              const ConnectivityView(),
-
+            if (!connectivityModel.isOnline) const ConnectivityView(),
             _SearchBar(isOnline: connectivityModel.isOnline),
             const SizedBox(height: 8),
             const CategoriesBar(),
@@ -155,6 +154,11 @@ class _HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          TopInteractionsSection(
+            listings: viewModel.topInteractionListings,
+          ),
+          if (viewModel.topInteractionListings.isNotEmpty)
+            const SizedBox(height: 24),
           FeaturedSection(listings: viewModel.featuredListings),
           const SizedBox(height: 24),
           RecentListingsSection(listings: viewModel.recentListings),
