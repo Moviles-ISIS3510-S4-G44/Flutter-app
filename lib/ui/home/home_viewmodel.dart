@@ -4,8 +4,8 @@ import 'package:marketplace_flutter_application/data/services/connectivity_servi
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final ListingRepository _listingRepository;
   final ConnectivityService connectivityService;
+  final ListingRepository _listingRepository;
 
   HomeViewModel({
     required this.connectivityService,
