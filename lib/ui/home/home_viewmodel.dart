@@ -20,9 +20,11 @@ class HomeViewModel extends ChangeNotifier {
 
   bool isLoading = false;
   String? errorMessage;
+  String searchQuery = '';
 
   List<ListingSummary> featuredListings = [];
   List<ListingSummary> recentListings = [];
+  List<ListingSummary> filteredListings = [];
   List<ListingSummary> topInteractionListings = [];
 
   Future<void> loadListings() async {
@@ -35,10 +37,12 @@ class HomeViewModel extends ChangeNotifier {
 
       featuredListings = listings.take(5).toList();
       recentListings = listings;
+      filteredListings = listings;
     } catch (error) {
       errorMessage = error.toString();
       featuredListings = [];
       recentListings = [];
+      filteredListings = [];
       topInteractionListings = [];
       isLoading = false;
       notifyListeners();
@@ -56,6 +60,23 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     isLoading = false;
+    notifyListeners();
+  }
+
+  void updateSearchQuery(String query) {
+    searchQuery = query.trim();
+
+    if (searchQuery.isEmpty) {
+      filteredListings = recentListings;
+    } else {
+      final normalizedQuery = searchQuery.toLowerCase();
+
+      filteredListings = recentListings.where((listing) {
+        return listing.title.toLowerCase().contains(normalizedQuery) ||
+            listing.category.toLowerCase().contains(normalizedQuery);
+      }).toList();
+    }
+
     notifyListeners();
   }
 }
