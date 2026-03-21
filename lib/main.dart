@@ -36,24 +36,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<ConnectivityService>(
-          create: (_) => ConnectivityService(),
-        ),
+        Provider<ConnectivityService>(create: (_) => ConnectivityService()),
 
         ChangeNotifierProvider<ConnectivityModel>(
-          create: (context) => ConnectivityModel(
-            context.read<ConnectivityService>(),
-          ),
+          create: (context) =>
+              ConnectivityModel(context.read<ConnectivityService>()),
         ),
 
-        Provider<AuthService>(
-          create: (_) => AuthService(),
-        ),
+        Provider<AuthService>(create: (_) => AuthService()),
 
         Provider<TokenStorage>(
-          create: (_) => TokenStorage(
-            const FlutterSecureStorage(),
-          ),
+          create: (_) => TokenStorage(const FlutterSecureStorage()),
         ),
 
         Provider<AuthRepository>(
@@ -63,9 +56,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        Provider<InteractionService>(
-          create: (_) => InteractionService(),
-        ),
+        Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
           create: (context) => InteractionRepository(
@@ -74,9 +65,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        Provider<ListingRepository>(
-          create: (_) => ListingRepository(),
-        ),
+        Provider<ListingRepository>(create: (_) => ListingRepository()),
 
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
@@ -86,15 +75,14 @@ class MyApp extends StatelessWidget {
         ),
 
         ChangeNotifierProvider<SignUpViewModel>(
-          create: (context) => SignUpViewModel(
-            context.read<AuthRepository>(),
-          ),
+          create: (context) => SignUpViewModel(context.read<AuthRepository>()),
         ),
 
         ChangeNotifierProvider<HomeViewModel>(
           create: (context) => HomeViewModel(
             connectivityService: context.read<ConnectivityService>(),
             listingRepository: context.read<ListingRepository>(),
+            interactionRepository: context.read<InteractionRepository>(),
           ),
         ),
 
