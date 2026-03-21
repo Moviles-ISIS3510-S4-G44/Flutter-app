@@ -1,51 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/categories_bar.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
+import 'package:marketplace_flutter_application/ui/home/widgets/top_interactions_section.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
-  @override
-  State<HomeView> createState() => _HomeViewState();
-}
-
-class _HomeViewState extends State<HomeView> with RouteAware {
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // reload when coming back from another screen
-    _loadProducts();
-  }
-
-  void _loadProducts() {
-    Future.microtask(() {
-      context.read<HomeViewModel>().loadProducts();
-    });
+  void _onNavTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/Home');
+        break;
+      case 1:
+        context.push('/search');
+        break;
+      case 2:
+        context.go('/Sell');
+        break;
+      // case 3 is inbox, not done yet
+      case 4:
+        context.push('/profile');
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final connectivityModel = context.watch<ConnectivityModel>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F7),
       appBar: const _HomeAppBar(),
       body: SafeArea(
         child: Column(
           children: [
-            GestureDetector(
-              onTap: () => context.push('/search'),
-              child: const _SearchBar(),
-            ),
+            if (!connectivityModel.isOnline) const ConnectivityView(),
+            _SearchBar(isOnline: connectivityModel.isOnline),
             const SizedBox(height: 8),
             const CategoriesBar(),
             const SizedBox(height: 28),
@@ -55,17 +52,7 @@ class _HomeViewState extends State<HomeView> with RouteAware {
       ),
       bottomNavigationBar: AppBottomNavBar(
         selectedIndex: 0,
-        onTap: (idx) {
-          switch (idx) {
-            case 1:
-              context.push('/search');
-            case 2:
-              context.push('/create');
-            // 3 is inbox, not done yet
-            case 4:
-              context.push('/profile');
-          }
-        },
+        onTap: (index) => _onNavTap(context, index),
       ),
     );
   }
@@ -97,44 +84,50 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _SearchBar extends StatelessWidget {
-  const _SearchBar();
+  final bool isOnline;
+
+  const _SearchBar({required this.isOnline});
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.read<HomeViewModel>();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: AbsorbPointer(
-        child: TextField(
-          style: const TextStyle(
+      child: TextField(
+        enabled: isOnline,
+        onChanged: viewModel.updateSearchQuery,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFF1F1F1F),
+        ),
+        decoration: InputDecoration(
+          hintText: isOnline
+              ? 'Search for items...'
+              : 'Search unavailable offline',
+          hintStyle: const TextStyle(
             fontSize: 14,
-            color: Color(0xFF1F1F1F),
+            color: Color.fromARGB(255, 174, 183, 194),
           ),
-          decoration: InputDecoration(
-            hintText: 'Search for items...',
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              color: Color.fromARGB(255, 174, 183, 194),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            prefixIcon: const Icon(
-              Icons.search,
-              size: 20,
-              color: Color.fromARGB(255, 174, 183, 194),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
-            ),
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 20,
+            color: Color.fromARGB(255, 174, 183, 194),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
           ),
         ),
       ),
@@ -148,18 +141,46 @@ class _HomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
+    final isSearching = viewModel.searchQuery.isNotEmpty;
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            viewModel.errorMessage!,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FeaturedSection(listings: viewModel.featuredListings),
-          const SizedBox(height: 24),
-          RecentListingsSection(listings: viewModel.recentListings),
+          if (!isSearching) ...[
+            TopInteractionsSection(
+              listings: viewModel.topInteractionListings,
+            ),
+            if (viewModel.topInteractionListings.isNotEmpty)
+              const SizedBox(height: 24),
+            FeaturedSection(listings: viewModel.featuredListings),
+            const SizedBox(height: 24),
+          ],
+          if (isSearching && viewModel.filteredListings.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(
+                child: Text('No listings match your search'),
+              ),
+            )
+          else
+            RecentListingsSection(listings: viewModel.filteredListings),
           const SizedBox(height: 16),
         ],
       ),

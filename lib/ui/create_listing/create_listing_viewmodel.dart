@@ -1,119 +1,240 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
+import 'package:marketplace_flutter_application/models/categories/category.dart';
 
 class CreateListingViewModel extends ChangeNotifier {
-  final dynamic _productRepo;
-  final dynamic _userRepo;
-  final dynamic _analytics;
-  final ImagePicker _picker = ImagePicker();
+  final ConnectivityService _connectivityService;
+  final ListingRepository _listingRepository;
+  final AuthRepository _authRepository;
+  final CategoryRepository _categoryRepository;
 
-  CreateListingViewModel(this._productRepo, this._userRepo, this._analytics);
+  bool isSubmitting = false;
+  String? submitErrorMessage;
 
-  File? selectedImage;
-  bool isLoading = false;
-  String? error;
-  bool created = false;
-  double? selectedLat;
-  double? selectedLng;
-  String? selectedLocationName;
+  AppUser? currentUser;
+  bool isLoadingUser = false;
+  String? userErrorMessage;
 
-  void setLocation(double lat, double lng, String name) {
-    selectedLat = lat;
-    selectedLng = lng;
-    selectedLocationName = name;
+  bool isLoadingCategories = false;
+  String? categoriesErrorMessage;
+  List<Category> categories = [];
+  Category? selectedCategory;
+
+  final List<String> conditions = ['New', 'Like New', 'Used'];
+  String selectedCondition = 'Like New';
+
+  final ImagePicker _imagePicker = ImagePicker();
+  List<XFile> selectedImages = [];
+  final int maxImages = 5;
+
+  String title = '';
+  String price = '';
+  String description = '';
+  String? location;
+
+  CreateListingViewModel({
+    ConnectivityService? connectivityService,
+    CategoryRepository? categoryRepository,
+    ListingRepository? listingRepository,
+    required AuthRepository authRepository,
+  })  : _connectivityService = connectivityService ?? ConnectivityService(),
+        _categoryRepository = categoryRepository ?? CategoryRepository(),
+        _listingRepository = listingRepository ?? ListingRepository(),
+        _authRepository = authRepository {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await Future.wait([
+      loadCategories(),
+      loadCurrentUser(),
+    ]);
+  }
+
+  void updateTitle(String value) {
+    title = value;
     notifyListeners();
   }
 
-  Future<void> pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
-    if (picked != null) {
-      selectedImage = File(picked.path);
-      notifyListeners();
-    }
+  void updatePrice(String value) {
+    price = value;
+    notifyListeners();
   }
 
-  Future<void> takePhoto() async {
-    final picked = await _picker.pickImage(source: ImageSource.camera, maxWidth: 1024);
-    if (picked != null) {
-      selectedImage = File(picked.path);
-      notifyListeners();
-    }
+  void updateDescription(String value) {
+    description = value;
+    notifyListeners();
   }
 
-  // category label -> backend uuid mapping
-  static const Map<String, String> _categoryIds = {
-    'Textbooks': '1ce3178f-12ca-4916-a448-887405ef0676',
-    'Electronics': '2de3178f-12ca-4916-a448-887405ef0677',
-    'Notes': '3ee3178f-12ca-4916-a448-887405ef0678',
-    // fallback labels
-    'Books': '1ce3178f-12ca-4916-a448-887405ef0676',
-    'Furniture': '3ee3178f-12ca-4916-a448-887405ef0678',
-    'Clothing': '3ee3178f-12ca-4916-a448-887405ef0678',
-    'Other': '3ee3178f-12ca-4916-a448-887405ef0678',
-  };
+  void selectCondition(String condition) {
+    selectedCondition = condition;
+    notifyListeners();
+  }
 
-  Future<bool> createListing({
-    required String title,
-    required String description,
-    required String price,
-    required String category,
-    String condition = 'New',
-    String location = 'Uniandes',
-  }) async {
-    if (selectedImage == null) {
-      error = 'Please select an image first';
-      notifyListeners();
-      return false;
-    }
-
-    isLoading = true;
-    error = null;
+  Future<void> loadCurrentUser() async {
+    isLoadingUser = true;
+    userErrorMessage = null;
     notifyListeners();
 
     try {
-      final parsedPrice = double.tryParse(price) ?? 0;
-      final categoryId = _categoryIds[category] ?? _categoryIds['Other']!;
-
-      // try to get auth token if user is logged in
-      String? token;
-      try {
-        token = (_userRepo as dynamic).token as String?;
-      } catch (_) {}
-
-      final productId = await _productRepo.createProduct({
-        'title': title,
-        'description': description,
-        'price': parsedPrice,
-        'category_id': categoryId,
-        'condition': condition,
-        'location': location,
-        'images': <String>[],
-        'status': 'active',
-      }, token: token);
-
-      try {
-        await _analytics.logCreateListing(productId, parsedPrice);
-      } catch (_) {}
-      created = true;
-      isLoading = false;
+      currentUser = await _authRepository.getMyProfile();
+    } catch (error) {
+      currentUser = null;
+      userErrorMessage = error.toString();
+    } finally {
+      isLoadingUser = false;
       notifyListeners();
-      return true;
-    } catch (e) {
-      error = 'Failed to create listing: $e';
-      isLoading = false;
-      notifyListeners();
-      return false;
     }
   }
 
-  void reset() {
-    selectedImage = null;
-    created = false;
-    error = null;
-    selectedLat = null;
-    selectedLng = null;
-    selectedLocationName = null;
+  Future<void> loadCategories() async {
+    if (!await _connectivityService.isOnline) {
+      categoriesErrorMessage = 'No internet connection';
+      notifyListeners();
+      return;
+    }
+
+    isLoadingCategories = true;
+    categoriesErrorMessage = null;
     notifyListeners();
+
+    try {
+      categories = await _categoryRepository.getCategories();
+
+      if (categories.isNotEmpty) {
+        selectedCategory = categories.first;
+      }
+    } catch (error) {
+      categoriesErrorMessage = error.toString();
+      categories = [];
+      selectedCategory = null;
+    } finally {
+      isLoadingCategories = false;
+      notifyListeners();
+    }
+  }
+
+  void selectCategory(Category? category) {
+    selectedCategory = category;
+    notifyListeners();
+  }
+
+  Future<void> pickImageFromGallery() async {
+    if (selectedImages.length >= maxImages) return;
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (image == null) return;
+
+    if (selectedImages.length < maxImages) {
+      selectedImages = [...selectedImages, image];
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickImageFromCamera() async {
+    if (selectedImages.length >= maxImages) return;
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+
+    if (image == null) return;
+
+    if (selectedImages.length < maxImages) {
+      selectedImages = [...selectedImages, image];
+      notifyListeners();
+    }
+  }
+
+  void removeImageAt(int index) {
+    if (index < 0 || index >= selectedImages.length) return;
+
+    selectedImages = List<XFile>.from(selectedImages)..removeAt(index);
+    notifyListeners();
+  }
+
+  void updateLocationFromCoordinates(double latitude, double longitude) {
+    location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
+    notifyListeners();
+  }
+
+  Future<bool> submitListing() async {
+    if (!await _connectivityService.isOnline) {
+      submitErrorMessage = 'No internet connection';
+      notifyListeners();
+      return false;
+    }
+
+    if (currentUser == null) {
+      submitErrorMessage = 'Could not identify current user';
+      notifyListeners();
+      return false;
+    }
+
+    if (selectedCategory == null) {
+      submitErrorMessage = 'Please select a category';
+      notifyListeners();
+      return false;
+    }
+
+    if (title.trim().isEmpty) {
+      submitErrorMessage = 'Title is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (price.trim().isEmpty) {
+      submitErrorMessage = 'Price is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (description.trim().isEmpty) {
+      submitErrorMessage = 'Description is required';
+      notifyListeners();
+      return false;
+    }
+
+    if (location == null || location!.trim().isEmpty) {
+      submitErrorMessage = 'Location is required';
+      notifyListeners();
+      return false;
+    }
+
+    isSubmitting = true;
+    submitErrorMessage = null;
+    notifyListeners();
+
+    try {
+      final request = CreateListingRequest(
+        sellerId: currentUser!.id,
+        categoryId: selectedCategory!.id,
+        title: title.trim(),
+        description: description.trim(),
+        price: price.trim(),
+        condition: selectedCondition,
+        images: const [],
+        status: 'active',
+        location: location!,
+      );
+
+      await _listingRepository.createListing(request);
+      return true;
+    } catch (error) {
+      submitErrorMessage = error.toString();
+      return false;
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
   }
 }
