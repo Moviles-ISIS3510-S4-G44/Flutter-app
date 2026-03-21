@@ -5,9 +5,12 @@ import 'package:marketplace_flutter_application/data/repositories/auth_repositor
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
 class CreateListingViewModel extends ChangeNotifier {
+  // Connectivity
+  final ConnectivityService _connectivityService;
   // Submission
   final ListingRepository _listingRepository;
   final AuthRepository _authRepository;
@@ -40,11 +43,12 @@ class CreateListingViewModel extends ChangeNotifier {
   String title = '';
   String price = '';
   String description = '';
-
   // Map
   String? location;
 
+  // Constructor
   CreateListingViewModel({
+    ConnectivityService? connectivityService,
     CategoryRepository? categoryRepository,
     ListingRepository? listingRepository,
     required AuthRepository authRepository,
@@ -59,6 +63,10 @@ class CreateListingViewModel extends ChangeNotifier {
       loadCategories(),
       loadCurrentUser(),
     ]);
+  }) : _connectivityService = connectivityService ?? ConnectivityService(),
+       _categoryRepository = categoryRepository ?? CategoryRepository(),
+       _listingRepository = listingRepository ?? ListingRepository() {
+    loadCategories();
   }
 
   void updateTitle(String value) {
@@ -98,6 +106,12 @@ class CreateListingViewModel extends ChangeNotifier {
   }
 
   Future<void> loadCategories() async {
+    if (!await _connectivityService.isOnline) {
+      categoriesErrorMessage = 'No internet connection';
+      notifyListeners();
+      return;
+    }
+
     isLoadingCategories = true;
     categoriesErrorMessage = null;
     notifyListeners();
@@ -160,6 +174,7 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Map
   void updateLocationFromCoordinates(double latitude, double longitude) {
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
     notifyListeners();
@@ -168,6 +183,8 @@ class CreateListingViewModel extends ChangeNotifier {
   Future<bool> submitListing() async {
     if (currentUser == null) {
       submitErrorMessage = 'Could not identify current user';
+    if (!await _connectivityService.isOnline) {
+      submitErrorMessage = 'No internet connection';
       notifyListeners();
       return false;
     }
