@@ -16,11 +16,10 @@ class ListingDetailViewModel extends ChangeNotifier {
   ListingDetailViewModel({
     ListingRepository? listingRepository,
     required InteractionRepository interactionRepository,
-  })  : _listingRepository = listingRepository ?? ListingRepository(),
-        _interactionRepository = interactionRepository;
     ConnectivityService? connectivityService,
-  }) : _listingRepository = listingRepository ?? ListingRepository(),
-       _connectivityService = connectivityService ?? ConnectivityService();
+  })  : _listingRepository = listingRepository ?? ListingRepository(),
+        _interactionRepository = interactionRepository,
+        _connectivityService = connectivityService ?? ConnectivityService();
 
   Future<void> loadListing(String listingId) async {
     if (!await _connectivityService.isOnline) {
