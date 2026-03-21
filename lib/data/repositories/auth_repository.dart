@@ -8,21 +8,14 @@ class AuthRepository {
   final AuthService authService;
   final TokenStorage tokenStorage;
 
-  AuthRepository({
-    required this.authService,
-    required this.tokenStorage,
-  });
+  AuthRepository({required this.authService, required this.tokenStorage});
 
   Future<AppUser> signup({
     required String name,
     required String email,
     required String password,
   }) async {
-    final dto = SignupDto(
-      name: name,
-      email: email,
-      password: password,
-    );
+    final dto = SignupDto(name: name, email: email, password: password);
 
     final userDto = await authService.signup(dto);
 
@@ -39,16 +32,16 @@ class AuthRepository {
     required String password,
   }) async {
     final tokenResponse = await authService.login(
-        email: email,
-        password: password,
-      );
-      debugPrint('TOKEN: ${tokenResponse.accessToken}');
+      email: email,
+      password: password,
+    );
+    debugPrint('TOKEN: ${tokenResponse.accessToken}');
 
-      await tokenStorage.saveToken(tokenResponse.accessToken);
-      debugPrint('TOKEN GUARDADO');
+    await tokenStorage.saveToken(tokenResponse.accessToken);
+    debugPrint('TOKEN GUARDADO');
 
-      final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
-      debugPrint('ME OK: ${userDto.email}');
+    final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
+    debugPrint('ME OK: ${userDto.email}');
 
     return AppUser(
       id: userDto.id,
@@ -75,6 +68,23 @@ class AuthRepository {
       await tokenStorage.clearToken();
       return null;
     }
+  }
+
+  Future<AppUser> getMyProfile() async {
+    final token = await tokenStorage.getToken();
+
+    if (token == null) {
+      throw Exception('No hay sesión activa');
+    }
+
+    final userDto = await authService.getCurrentUser(token);
+
+    return AppUser(
+      id: userDto.id,
+      name: userDto.name,
+      email: userDto.email,
+      rating: userDto.rating,
+    );
   }
 
   Future<void> logout() async {
