@@ -9,10 +9,7 @@ import '../signup/signup_view.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-
     initialLocation: '/login',
-
-main
     routes: [
       GoRoute(
         path: '/login',
