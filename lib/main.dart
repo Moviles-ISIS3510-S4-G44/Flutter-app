@@ -52,7 +52,10 @@ class MyApp extends StatelessWidget {
         ),
         Provider<ListingRepository>(create: (_) => ListingRepository()),
         ChangeNotifierProvider<LoginViewModel>(
-          create: (context) => LoginViewModel(connectivityService: ConnectivityService(), repository: context.read<AuthRepository>())
+          create: (context) => LoginViewModel(
+            connectivityService: ConnectivityService(),
+            repository: context.read<AuthRepository>(),
+          ),
         ),
         ChangeNotifierProvider<SignUpViewModel>(
           create: (context) => SignUpViewModel(context.read<AuthRepository>()),
@@ -64,8 +67,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) =>
-              CreateListingViewModel(categoryRepository: CategoryRepository()),
+          create: (context) => CreateListingViewModel(
+            categoryRepository: CategoryRepository(),
+            authRepository: context.read<AuthRepository>(),
+          ),
         ),
       ],
 
