@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
 
@@ -37,28 +38,13 @@ class _ListingDetailViewState extends State<ListingDetailView> {
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
             title: const Text('Product Details'),
           ),
           body: _buildBody(),
-          bottomNavigationBar: _viewModel.listing == null
-              ? null
-              : SafeArea(
-                  minimum: const EdgeInsets.all(16),
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Contact Seller próximamente'),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.chat_bubble_outline),
-                      label: const Text('Contact Seller'),
-                    ),
-                  ),
-                ),
         );
       },
     );
@@ -90,6 +76,30 @@ class _ListingDetailViewState extends State<ListingDetailView> {
       );
     }
 
-    return ListingDetailBody(listing: listing);
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          ListingDetailBody(listing: listing),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Contact Seller próximamente'),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline),
+                label: const Text('Contact Seller'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
