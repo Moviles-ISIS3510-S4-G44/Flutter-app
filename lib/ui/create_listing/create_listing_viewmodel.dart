@@ -34,7 +34,7 @@ class CreateListingViewModel extends ChangeNotifier {
   final int maxImages = 5;
 
   String title = '';
-  String price = '';
+  int price = 0;
   String description = '';
   String? location;
 
@@ -63,7 +63,7 @@ class CreateListingViewModel extends ChangeNotifier {
   }
 
   void updatePrice(String value) {
-    price = value;
+    price = int.tryParse(value) ?? 0;
     notifyListeners();
   }
 
@@ -192,7 +192,7 @@ class CreateListingViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (price.trim().isEmpty) {
+    if (price == 0) {
       submitErrorMessage = 'Price is required';
       notifyListeners();
       return false;
@@ -220,7 +220,7 @@ class CreateListingViewModel extends ChangeNotifier {
         categoryId: selectedCategory!.id,
         title: title.trim(),
         description: description.trim(),
-        price: price.trim(),
+        price: price,
         condition: selectedCondition,
         images: const [],
         status: 'active',
