@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/config/app_config.dart';
+import 'package:marketplace_flutter_application/data/dtos/auth/logged_user_dto.dart';
 
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/user_dto.dart';
@@ -104,16 +105,16 @@ class AuthService {
     }
   }
 
-    Future<UserDto> getCurrentUser(String token) async {
+    Future<LoggedUserDto> getCurrentUser(String token) async {
       final response = await _httpClient.get(
-        Uri.parse('$_baseUrl/auth/me'),
+        Uri.parse('$_baseUrl/users/me'),
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
   
       if (response.statusCode == 200) {
-        return UserDto.fromJson(jsonDecode(response.body));
+        return LoggedUserDto.fromJson(jsonDecode(response.body));
       } 
       else {
         debugPrint('Failed to fetch current user: ${response.statusCode} - ${response.body}'); 

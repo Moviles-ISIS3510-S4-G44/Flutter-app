@@ -3,7 +3,7 @@ class CreateListingRequest {
   final String categoryId;
   final String title;
   final String description;
-  final String price;
+  final int price;
   final String condition;
   final List<String> images;
   final String status;

@@ -1,7 +1,7 @@
 class ListingSummary {
   final String id;
   final String title;
-  final String price;
+  final int price;
   final String category;
   final String imageUrl;
 

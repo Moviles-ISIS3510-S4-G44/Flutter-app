@@ -107,7 +107,7 @@ class _MapListingViewState extends State<MapListingView> {
                 position: position,
                 infoWindow: InfoWindow(
                   title: listing.title,
-                  snippet: listing.price,
+                  snippet: '\$${listing.price}',
                 ),
               ),
             },

@@ -96,7 +96,7 @@ class ListingCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          listing.price,
+                          '\$${listing.price}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
