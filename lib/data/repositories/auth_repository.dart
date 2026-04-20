@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/auth/signup_response_dto.dart';
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
@@ -10,22 +11,17 @@ class AuthRepository {
 
   AuthRepository({required this.authService, required this.tokenStorage});
 
-  Future<AppUser> signup({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    final dto = SignupDto(name: name, email: email, password: password);
+  Future<SignupResponseDto> signup({
+  required String name,
+  required String email,
+  required String password,
+}) async {
+  final dto = SignupDto(name: name, email: email, password: password);
 
-    final userDto = await authService.signup(dto);
+  final response = await authService.signup(dto);
 
-    return AppUser(
-      id: userDto.id,
-      name: userDto.name,
-      email: userDto.email,
-      rating: userDto.rating,
-    );
-  }
+  return response;
+}
 
   Future<AppUser> login({
     required String email,
