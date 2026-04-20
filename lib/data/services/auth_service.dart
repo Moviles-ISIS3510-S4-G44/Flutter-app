@@ -7,6 +7,7 @@ import 'package:marketplace_flutter_application/config/app_config.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/logged_user_dto.dart';
 
 import 'package:marketplace_flutter_application/data/dtos/auth/signup_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/auth/signup_response_dto.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/user_dto.dart';
 import 'package:marketplace_flutter_application/data/dtos/auth/token_dto.dart';
 
@@ -14,7 +15,7 @@ class AuthService {
   final http.Client _httpClient = http.Client();
   final String _baseUrl = AppConfig.apiBaseUrl;
 
-  Future<UserDto> signup(SignupDto dto) async {
+  Future<SignupResponseDto> signup(SignupDto dto) async {
     try {
       final response = await _httpClient
           .post(
@@ -30,10 +31,9 @@ class AuthService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         debugPrint('Signup successful');
-        return UserDto.fromJson(data);
+        return SignupResponseDto.fromJson(data);
       }
 
-      //Manejo de errores específicos
       if (response.statusCode == 400) {
         throw Exception(data['detail'] ?? 'Invalid signup data');
       }
@@ -46,9 +46,7 @@ class AuthService {
         throw Exception(data['detail'] ?? 'Invalid input data');
       }
 
-      // Error genérico
       throw Exception(data['detail'] ?? 'Unexpected error occurred');
-
     } on TimeoutException {
       throw Exception('Connection timeout. Try again.');
     } catch (e) {
@@ -56,7 +54,6 @@ class AuthService {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
-
   Future<TokenDto> login({
     required String email,
     required String password,
