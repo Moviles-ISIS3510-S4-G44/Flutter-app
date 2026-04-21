@@ -1,11 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/domains/auth/app_user.dart';
 
 class LoginViewModel extends ChangeNotifier {
+  final ConnectivityService connectivityService;
   final AuthRepository repository;
 
-  LoginViewModel(this.repository);
+  LoginViewModel({
+    required this.connectivityService,
+    required this.repository
+  });
 
   bool isLoading = false;
   String? errorMessage;
@@ -64,5 +69,12 @@ class LoginViewModel extends ChangeNotifier {
     currentUser = null;
     errorMessage = null;
     notifyListeners();
+  }
+
+  void clearError() {
+    if (errorMessage != null) {
+      errorMessage = null;
+      notifyListeners();
+    }
   }
 }
