@@ -12,13 +12,16 @@ class AuthRepository {
   AuthRepository({required this.authService, required this.tokenStorage});
 
   Future<SignupResponseDto> signup({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    final dto = SignupDto(name: name, email: email, password: password);
-    return authService.signup(dto);
-  }
+  required String name,
+  required String email,
+  required String password,
+}) async {
+  final dto = SignupDto(name: name, email: email, password: password);
+
+  final response = await authService.signup(dto);
+
+  return response;
+}
 
   Future<AppUser> login({
     required String email,
@@ -28,11 +31,13 @@ class AuthRepository {
       email: email,
       password: password,
     );
+    debugPrint('TOKEN: ${tokenResponse.accessToken}');
 
     await tokenStorage.saveToken(tokenResponse.accessToken);
+    debugPrint('TOKEN GUARDADO');
 
     final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
-    debugPrint('Login OK: ${userDto.email}');
+    debugPrint('ME OK: ${userDto.email}');
 
     return AppUser(
       id: userDto.id,
@@ -48,6 +53,7 @@ class AuthRepository {
 
     try {
       final userDto = await authService.getCurrentUser(token);
+
       return AppUser(
         id: userDto.id,
         name: userDto.name,
@@ -62,23 +68,13 @@ class AuthRepository {
 
   Future<AppUser> getMyProfile() async {
     final token = await tokenStorage.getToken();
-    if (token == null) throw Exception('No active session');
+
+    if (token == null) {
+      throw Exception('No hay sesión activa');
+    }
 
     final userDto = await authService.getCurrentUser(token);
-    return AppUser(
-      id: userDto.id,
-      name: userDto.name,
-      email: userDto.email,
-      rating: userDto.rating,
-    );
-  }
 
-  /// Fetch any user's public profile by ID (used to show seller info).
-  Future<AppUser> getUserById(String userId) async {
-    final token = await tokenStorage.getToken();
-    if (token == null) throw Exception('No active session');
-
-    final userDto = await authService.getUserById(userId, token);
     return AppUser(
       id: userDto.id,
       name: userDto.name,
