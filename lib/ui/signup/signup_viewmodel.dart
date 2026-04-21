@@ -15,7 +15,7 @@ class SignUpViewModel extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    if (isLoading) return;
+    if (isLoading) return; // guard contra double-tap
 
     isLoading = true;
     errorMessage = null;
@@ -28,13 +28,19 @@ class SignUpViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
-
       signupSuccess = true;
     } catch (e) {
-      errorMessage = 'No se pudo crear la cuenta';
+      errorMessage = e.toString();
       debugPrint('Signup error: $e');
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void clearError() {
+    if (errorMessage != null) {
+      errorMessage = null;
       notifyListeners();
     }
   }
