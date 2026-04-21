@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
-import 'package:provider/provider.dart';
 
 class ListingDetailView extends StatefulWidget {
   final String listingId;
@@ -32,6 +32,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
     _viewModel = ListingDetailViewModel(
       listingRepository: context.read<ListingRepository>(),
       interactionRepository: context.read<InteractionRepository>(),
+      authRepository: context.read<AuthRepository>(),
     );
 
     _viewModel.loadListing(widget.listingId);
@@ -60,9 +61,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
           ),
           body: Column(
             children: [
-              if (!connectivityModel.isOnline)
-                const ConnectivityView(),
-
+              if (!connectivityModel.isOnline) const ConnectivityView(),
               Expanded(
                 child: _buildBody(connectivityModel.isOnline),
               ),
@@ -75,9 +74,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
 
   Widget _buildBody(bool isOnline) {
     if (_viewModel.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_viewModel.errorMessage != null) {
@@ -94,15 +91,18 @@ class _ListingDetailViewState extends State<ListingDetailView> {
 
     final listing = _viewModel.listing;
     if (listing == null) {
-      return const Center(
-        child: Text('Listing not found'),
-      );
+      return const Center(child: Text('Listing not found'));
     }
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          ListingDetailBody(listing: listing),
+          ListingDetailBody(
+            listing: listing,
+            sellerName: _viewModel.seller?.name,
+            sellerEmail: _viewModel.seller?.email,
+            isLoadingSeller: _viewModel.isLoadingSeller,
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: SizedBox(
