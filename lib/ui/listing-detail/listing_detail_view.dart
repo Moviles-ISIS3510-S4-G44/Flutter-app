@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
@@ -29,9 +30,11 @@ class _ListingDetailViewState extends State<ListingDetailView> {
   void initState() {
     super.initState();
 
+    // Todos los deps se inyectan desde el árbol de Providers — sin instancias internas
     _viewModel = ListingDetailViewModel(
       listingRepository: context.read<ListingRepository>(),
       interactionRepository: context.read<InteractionRepository>(),
+      connectivityService: context.read<ConnectivityService>(),
       authRepository: context.read<AuthRepository>(),
     );
 
@@ -63,7 +66,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
             children: [
               if (!connectivityModel.isOnline) const ConnectivityView(),
               Expanded(
-                child: _buildBody(connectivityModel.isOnline),
+                child: _buildBody(context, connectivityModel.isOnline),
               ),
             ],
           ),
@@ -72,20 +75,15 @@ class _ListingDetailViewState extends State<ListingDetailView> {
     );
   }
 
-  Widget _buildBody(bool isOnline) {
+  Widget _buildBody(BuildContext context, bool isOnline) {
     if (_viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (_viewModel.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            _viewModel.errorMessage!,
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return _ErrorState(
+        message: _viewModel.errorMessage!,
+        onRetry: () => _viewModel.retry(),
       );
     }
 
@@ -105,25 +103,99 @@ class _ListingDetailViewState extends State<ListingDetailView> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: isOnline
-                    ? () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Contact Seller próximamente'),
-                          ),
-                        );
-                      }
-                    : null,
-                icon: const Icon(Icons.chat_bubble_outline),
-                label: const Text('Contact Seller'),
-              ),
+            child: Row(
+              children: [
+                // Ver en mapa
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: isOnline
+                        ? () => context.push('/listing-map/${listing.id}')
+                        : null,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('Ver en mapa'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Contactar vendedor
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: isOnline
+                        ? () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Contact Seller próximamente'),
+                              ),
+                            );
+                          }
+                        : null,
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('Contactar'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Error state con botón Retry ───────────────────────────────────────────────
+
+class _ErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorState({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 56, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

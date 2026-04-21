@@ -19,25 +19,31 @@ class ListingDetailViewModel extends ChangeNotifier {
   AppUser? seller;
   bool isLoadingSeller = false;
 
+  // Guardamos el listingId para poder hacer retry
+  String? _currentListingId;
+
   ListingDetailViewModel({
-    ListingRepository? listingRepository,
+    required ListingRepository listingRepository,
     required InteractionRepository interactionRepository,
-    ConnectivityService? connectivityService,
+    required ConnectivityService connectivityService,
     required AuthRepository authRepository,
-  })  : _listingRepository = listingRepository ?? ListingRepository(),
+  })  : _listingRepository = listingRepository,
         _interactionRepository = interactionRepository,
-        _connectivityService = connectivityService ?? ConnectivityService(),
+        _connectivityService = connectivityService,
         _authRepository = authRepository;
 
   Future<void> loadListing(String listingId) async {
+    _currentListingId = listingId;
+
     if (!await _connectivityService.isOnline) {
-      errorMessage = 'No internet connection';
+      errorMessage = 'Sin conexión a internet';
       notifyListeners();
       return;
     }
 
     isLoading = true;
     errorMessage = null;
+    seller = null;
     notifyListeners();
 
     try {
@@ -46,16 +52,22 @@ class ListingDetailViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
 
-      // Cargar vendedor e interacción en paralelo
+      // Cargar vendedor e interacción en paralelo, ambos fallan silenciosamente
       await Future.wait([
         _loadSeller(result.sellerId),
         _registerInteraction(listingId),
       ]);
     } catch (e) {
-      errorMessage = 'Failed to load listing details';
+      errorMessage = 'No se pudo cargar el detalle del listing';
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Reintenta la carga usando el último listingId conocido.
+  Future<void> retry() async {
+    if (_currentListingId == null) return;
+    await loadListing(_currentListingId!);
   }
 
   Future<void> _loadSeller(String sellerId) async {
