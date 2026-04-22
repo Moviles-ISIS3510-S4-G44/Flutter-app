@@ -330,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'SCHOLASTIC',
+                              'University Marketplace',
                               style: TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 18,
@@ -358,7 +358,7 @@ class _LoginPageState extends State<LoginPage> {
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: textSecondary,
+                            color: Color.fromARGB(255, 8, 8, 8),
                             height: 1.4,
                           ),
                         ),
@@ -404,19 +404,8 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _sectionLabel('PASSWORD'),
-                            const Text(
-                              'FORGOT PASSWORD?',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                                color: Color(0xFF4F4F4F),
-                              ),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                         TextField(
                           controller: _passwordController,
                           focusNode: _passwordFocusNode,
@@ -458,40 +447,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         if (_passwordError != null) _fieldError(_passwordError!),
 
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: Checkbox(
-                                value: stayLoggedIn,
-                                activeColor: textPrimary,
-                                side: const BorderSide(color: borderColor),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                onChanged: connectivityModel.isOnline && !viewModel.isLoading
-                                    ? (value) {
-                                        setState(() {
-                                          stayLoggedIn = value ?? false;
-                                        });
-                                      }
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'Stay logged in for 30 days',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
+
 
                         if (backendError != null) ...[
                           const SizedBox(height: 16),
@@ -508,7 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                                 : () => _handleLogin(context),
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
-                              backgroundColor: primaryYellow,
+                              backgroundColor: Color(0xFFFFF0B8),
                               foregroundColor: textPrimary,
                               disabledBackgroundColor: const Color(0xFFE6E6E6),
                               disabledForegroundColor: const Color(0xFF9E9E9E),
@@ -550,19 +506,6 @@ class _LoginPageState extends State<LoginPage> {
                                 thickness: 1,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                'PARTNER SIGN-IN',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
                             const Expanded(
                               child: Divider(
                                 color: Color(0xFFE0E0E0),
@@ -571,18 +514,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            const SizedBox(width: 12),
-                            _partnerButton(
-                              icon: Icons.account_balance,
-                              text: 'EDUID',
-                            ),
-                          ],
-                        ),
-
                         const SizedBox(height: 28),
                         Center(
                           child: GestureDetector(
@@ -658,7 +590,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    '© 2024 SCHOLASTIC MEDIA GROUP',
+                    '© 20226 Uniandes ISIS3510',
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 10,

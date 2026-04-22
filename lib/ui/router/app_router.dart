@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_view.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_view.dart';
 import 'package:marketplace_flutter_application/ui/map_listing/map_listing_view.dart';
+import 'package:marketplace_flutter_application/ui/profile/profile_view.dart';
 
 import '../home/home_view.dart';
 import '../login/login_view.dart';
@@ -40,6 +41,10 @@ class AppRouter {
           final listingId = state.pathParameters['listingId']!;
           return MapListingView(listingId: listingId);
         },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileView(),
       ),
     ],
   );

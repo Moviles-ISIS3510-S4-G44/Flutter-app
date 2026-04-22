@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
@@ -55,7 +56,11 @@ class MyApp extends StatelessWidget {
             tokenStorage: context.read<TokenStorage>(),
           ),
         ),
-
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (context) => ProfileViewModel(
+            repository: context.read<AuthRepository>(),
+          ),
+        ),
         Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
