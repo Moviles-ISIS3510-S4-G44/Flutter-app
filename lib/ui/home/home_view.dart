@@ -51,6 +51,8 @@ class HomeView extends StatelessWidget {
   }
 }
 
+// ── App bar ───────────────────────────────────────────────────────────────────
+
 class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomeAppBar();
 
@@ -76,9 +78,10 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+// ── Search bar ────────────────────────────────────────────────────────────────
+
 class _SearchBar extends StatelessWidget {
   final bool isOnline;
-
   const _SearchBar({required this.isOnline});
 
   @override
@@ -90,14 +93,10 @@ class _SearchBar extends StatelessWidget {
       child: TextField(
         enabled: isOnline,
         onChanged: viewModel.updateSearchQuery,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF1F1F1F),
-        ),
+        style: const TextStyle(fontSize: 14, color: Color(0xFF1F1F1F)),
         decoration: InputDecoration(
-          hintText: isOnline
-              ? 'Search for items...'
-              : 'Search unavailable offline',
+          hintText:
+              isOnline ? 'Search for items...' : 'Search unavailable offline',
           hintStyle: const TextStyle(
             fontSize: 14,
             color: Color.fromARGB(255, 174, 183, 194),
@@ -128,54 +127,127 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+// ── Body ──────────────────────────────────────────────────────────────────────
+
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
-    final isSearching = viewModel.searchQuery.isNotEmpty;
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
+    // Estado de error con pull-to-refresh para reintentar
     if (viewModel.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            viewModel.errorMessage!,
-            textAlign: TextAlign.center,
+      return RefreshIndicator(
+        onRefresh: viewModel.loadListings,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.wifi_off_rounded,
+                      size: 56,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No se pudieron cargar los listings',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Desliza hacia abajo para reintentar',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       );
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isSearching) ...[
-            TopInteractionsSection(
-              listings: viewModel.topInteractionListings,
-            ),
-            if (viewModel.topInteractionListings.isNotEmpty)
-              const SizedBox(height: 24),
-            FeaturedSection(listings: viewModel.featuredListings),
-            const SizedBox(height: 24),
-          ],
-          if (isSearching && viewModel.filteredListings.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(
-                child: Text('No listings match your search'),
+    final isSearching = viewModel.searchQuery.isNotEmpty;
+
+    // Cuerpo normal con pull-to-refresh
+    return RefreshIndicator(
+      onRefresh: viewModel.loadListings,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!isSearching) ...[
+              TopInteractionsSection(
+                listings: viewModel.topInteractionListings,
               ),
-            )
-          else
-            RecentListingsSection(listings: viewModel.filteredListings),
-          const SizedBox(height: 16),
-        ],
+              if (viewModel.topInteractionListings.isNotEmpty)
+                const SizedBox(height: 24),
+              FeaturedSection(listings: viewModel.featuredListings),
+              const SizedBox(height: 24),
+            ],
+
+            // Empty state de búsqueda
+            if (isSearching && viewModel.filteredListings.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search_off_rounded,
+                        size: 52,
+                        color: Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'Sin resultados para\n"${viewModel.searchQuery}"',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Intenta con otras palabras',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              RecentListingsSection(listings: viewModel.filteredListings),
+
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
