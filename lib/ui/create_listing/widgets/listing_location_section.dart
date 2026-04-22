@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -118,7 +119,7 @@ class ListingLocationSection extends StatelessWidget {
   }
 }
 
-// Location picker dialog 
+// ── Location picker dialog ────────────────────────────────────────────────────
 
 class LocationPickerDialog extends StatefulWidget {
   final LatLng initialLocation;
@@ -158,6 +159,8 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isOnline = context.watch<ConnectivityModel>().isOnline;
+
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -166,6 +169,35 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
         height: 500,
         child: Column(
           children: [
+            // Banner de sin conexión
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFD700),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, size: 16, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Sin conexión. El mapa puede no cargar correctamente.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
