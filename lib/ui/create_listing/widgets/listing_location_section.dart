@@ -291,7 +291,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                       child: const Text('Cancelar'),
@@ -306,7 +306,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                         foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                       child: const Text('Confirmar'),
