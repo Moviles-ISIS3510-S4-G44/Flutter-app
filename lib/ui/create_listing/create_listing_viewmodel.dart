@@ -14,38 +14,54 @@ class CreateListingViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
   final CategoryRepository _categoryRepository;
 
+  // Submit state
   bool isSubmitting = false;
+  bool submitSuccess = false;
   String? submitErrorMessage;
 
+  // User state
   AppUser? currentUser;
   bool isLoadingUser = false;
   String? userErrorMessage;
 
+  // Category state
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
   List<Category> categories = [];
   Category? selectedCategory;
 
+  // Condition
   final List<String> conditions = ['New', 'Like New', 'Used'];
   String selectedCondition = 'Like New';
 
+  // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
   final int maxImages = 5;
 
+  // Form fields
   String title = '';
   int price = 0;
   String description = '';
   String? location;
+  double? locationLat;
+  double? locationLng;
+
+  // Field-level validation errors
+  String? titleError;
+  String? priceError;
+  String? descriptionError;
+  String? locationError;
+  String? categoryError;
 
   CreateListingViewModel({
-    ConnectivityService? connectivityService,
-    CategoryRepository? categoryRepository,
-    ListingRepository? listingRepository,
+    required ConnectivityService connectivityService,
+    required CategoryRepository categoryRepository,
+    required ListingRepository listingRepository,
     required AuthRepository authRepository,
-  })  : _connectivityService = connectivityService ?? ConnectivityService(),
-        _categoryRepository = categoryRepository ?? CategoryRepository(),
-        _listingRepository = listingRepository ?? ListingRepository(),
+  })  : _connectivityService = connectivityService,
+        _categoryRepository = categoryRepository,
+        _listingRepository = listingRepository,
         _authRepository = authRepository {
     _initialize();
   }
@@ -57,25 +73,56 @@ class CreateListingViewModel extends ChangeNotifier {
     ]);
   }
 
+  // Field updates
+
   void updateTitle(String value) {
     title = value;
-    notifyListeners();
+    if (titleError != null) {
+      titleError = null;
+      notifyListeners();
+    } else {
+      notifyListeners();
+    }
   }
 
   void updatePrice(String value) {
     price = int.tryParse(value) ?? 0;
+    if (priceError != null) {
+      priceError = null;
+    }
     notifyListeners();
   }
 
   void updateDescription(String value) {
     description = value;
-    notifyListeners();
+    if (descriptionError != null) {
+      descriptionError = null;
+      notifyListeners();
+    } else {
+      notifyListeners();
+    }
   }
 
   void selectCondition(String condition) {
     selectedCondition = condition;
     notifyListeners();
   }
+
+  void selectCategory(Category? category) {
+    selectedCategory = category;
+    if (categoryError != null) categoryError = null;
+    notifyListeners();
+  }
+
+  void updateLocationFromCoordinates(double latitude, double longitude) {
+    locationLat = latitude;
+    locationLng = longitude;
+    location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
+    if (locationError != null) locationError = null;
+    notifyListeners();
+  }
+
+  // User / categories loading 
 
   Future<void> loadCurrentUser() async {
     isLoadingUser = true;
@@ -86,7 +133,7 @@ class CreateListingViewModel extends ChangeNotifier {
       currentUser = await _authRepository.getMyProfile();
     } catch (error) {
       currentUser = null;
-      userErrorMessage = error.toString();
+      userErrorMessage = 'No se pudo verificar la sesión. Inicia sesión de nuevo.';
     } finally {
       isLoadingUser = false;
       notifyListeners();
@@ -95,7 +142,7 @@ class CreateListingViewModel extends ChangeNotifier {
 
   Future<void> loadCategories() async {
     if (!await _connectivityService.isOnline) {
-      categoriesErrorMessage = 'No internet connection';
+      categoriesErrorMessage = 'Sin conexión para cargar categorías';
       notifyListeners();
       return;
     }
@@ -106,12 +153,9 @@ class CreateListingViewModel extends ChangeNotifier {
 
     try {
       categories = await _categoryRepository.getCategories();
-
-      if (categories.isNotEmpty) {
-        selectedCategory = categories.first;
-      }
+      if (categories.isNotEmpty) selectedCategory = categories.first;
     } catch (error) {
-      categoriesErrorMessage = error.toString();
+      categoriesErrorMessage = 'No se pudieron cargar las categorías';
       categories = [];
       selectedCategory = null;
     } finally {
@@ -120,20 +164,12 @@ class CreateListingViewModel extends ChangeNotifier {
     }
   }
 
-  void selectCategory(Category? category) {
-    selectedCategory = category;
-    notifyListeners();
-  }
+  // Image picking 
 
   Future<void> pickImageFromGallery() async {
     if (selectedImages.length >= maxImages) return;
-
-    final XFile? image = await _imagePicker.pickImage(
-      source: ImageSource.gallery,
-    );
-
+    final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
-
     if (selectedImages.length < maxImages) {
       selectedImages = [...selectedImages, image];
       notifyListeners();
@@ -142,13 +178,8 @@ class CreateListingViewModel extends ChangeNotifier {
 
   Future<void> pickImageFromCamera() async {
     if (selectedImages.length >= maxImages) return;
-
-    final XFile? image = await _imagePicker.pickImage(
-      source: ImageSource.camera,
-    );
-
+    final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera);
     if (image == null) return;
-
     if (selectedImages.length < maxImages) {
       selectedImages = [...selectedImages, image];
       notifyListeners();
@@ -157,61 +188,82 @@ class CreateListingViewModel extends ChangeNotifier {
 
   void removeImageAt(int index) {
     if (index < 0 || index >= selectedImages.length) return;
-
     selectedImages = List<XFile>.from(selectedImages)..removeAt(index);
     notifyListeners();
   }
 
-  void updateLocationFromCoordinates(double latitude, double longitude) {
-    location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
-    notifyListeners();
-  }
+  // Validation
 
-  Future<bool> submitListing() async {
-    if (!await _connectivityService.isOnline) {
-      submitErrorMessage = 'No internet connection';
-      notifyListeners();
-      return false;
-    }
+  bool _validate() {
+    titleError = null;
+    priceError = null;
+    descriptionError = null;
+    locationError = null;
+    categoryError = null;
+
+    bool valid = true;
 
     if (currentUser == null) {
-      submitErrorMessage = 'Could not identify current user';
-      notifyListeners();
-      return false;
+      submitErrorMessage = 'No hay sesión activa. Inicia sesión de nuevo.';
+      valid = false;
     }
 
     if (selectedCategory == null) {
-      submitErrorMessage = 'Please select a category';
-      notifyListeners();
-      return false;
+      categoryError = 'Selecciona una categoría';
+      valid = false;
     }
 
-    if (title.trim().isEmpty) {
-      submitErrorMessage = 'Title is required';
-      notifyListeners();
-      return false;
+    final trimmedTitle = title.trim();
+    if (trimmedTitle.isEmpty) {
+      titleError = 'El título es requerido';
+      valid = false;
+    } else if (trimmedTitle.length < 5) {
+      titleError = 'El título debe tener al menos 5 caracteres';
+      valid = false;
     }
 
-    if (price == 0) {
-      submitErrorMessage = 'Price is required';
-      notifyListeners();
-      return false;
+    if (price <= 0) {
+      priceError = 'Ingresa un precio mayor a 0';
+      valid = false;
     }
 
-    if (description.trim().isEmpty) {
-      submitErrorMessage = 'Description is required';
-      notifyListeners();
-      return false;
+    final trimmedDesc = description.trim();
+    if (trimmedDesc.isEmpty) {
+      descriptionError = 'La descripción es requerida';
+      valid = false;
+    } else if (trimmedDesc.length < 10) {
+      descriptionError = 'La descripción debe tener al menos 10 caracteres';
+      valid = false;
     }
 
     if (location == null || location!.trim().isEmpty) {
-      submitErrorMessage = 'Location is required';
+      locationError = 'Selecciona una ubicación en el mapa';
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // Submit 
+
+  Future<bool> submitListing() async {
+    if (isSubmitting) return false;
+
+    submitErrorMessage = null;
+    submitSuccess = false;
+
+    if (!await _connectivityService.isOnline) {
+      submitErrorMessage = 'Sin conexión a internet';
+      notifyListeners();
+      return false;
+    }
+
+    if (!_validate()) {
       notifyListeners();
       return false;
     }
 
     isSubmitting = true;
-    submitErrorMessage = null;
     notifyListeners();
 
     try {
@@ -228,13 +280,33 @@ class CreateListingViewModel extends ChangeNotifier {
       );
 
       await _listingRepository.createListing(request);
+      submitSuccess = true;
+      _resetForm();
       return true;
     } catch (error) {
-      submitErrorMessage = error.toString();
+      submitErrorMessage = 'No se pudo publicar el listing. Intenta de nuevo.';
       return false;
     } finally {
       isSubmitting = false;
       notifyListeners();
     }
+  }
+
+  void _resetForm() {
+    title = '';
+    price = 0;
+    description = '';
+    location = null;
+    locationLat = null;
+    locationLng = null;
+    selectedCondition = 'Like New';
+    selectedImages = [];
+    if (categories.isNotEmpty) selectedCategory = categories.first;
+    titleError = null;
+    priceError = null;
+    descriptionError = null;
+    locationError = null;
+    categoryError = null;
+    submitErrorMessage = null;
   }
 }
