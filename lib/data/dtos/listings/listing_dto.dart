@@ -4,7 +4,7 @@ class ListingDto {
   final String categoryId;
   final String title;
   final String description;
-  final String price;
+  final int price;
   final String condition;
   final List<String> images;
   final String status;
@@ -30,7 +30,7 @@ class ListingDto {
       categoryId: json['category_id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      price: json['price'].toString(),
+      price: json['price'] as int,
       condition: json['condition'] as String,
       images: (json['images'] as List<dynamic>)
           .map((image) => image as String)

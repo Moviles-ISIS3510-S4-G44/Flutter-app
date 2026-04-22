@@ -170,30 +170,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (context.read<SignUpViewModel>().signupSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.green.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(milliseconds: 2000),
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
-              SizedBox(width: 10),
-              Text(
-                '¡Cuenta creada! Ya puedes iniciar sesión.',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+        const SnackBar(
+          content: Text('Account created successfully. Please log in.'),
         ),
       );
-      await Future.delayed(const Duration(milliseconds: 1200));
-      if (!mounted) return;
+
       context.go('/login');
     }
   }
@@ -247,58 +228,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _fieldError(String message) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, left: 4),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, size: 14, color: errorRed),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 12,
-                color: errorRed,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _errorBanner(String message) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: errorRedLight,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: errorRedBorder),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.warning_amber_rounded, size: 18, color: errorRed),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: errorRed,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final connectivityModel = context.watch<ConnectivityModel>();
@@ -311,8 +240,11 @@ class _SignUpPageState extends State<SignUpPage> {
       body: SafeArea(
         child: Column(
           children: [
-            if (!connectivityModel.isOnline) const ConnectivityView(),
+            // Banner de conectividad al tope
+            if (!connectivityModel.isOnline)
+              const ConnectivityView(),
 
+            // Contenido principal
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -325,8 +257,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 6),
-
-                      // Logo
                       Row(
                         children: const [
                           Icon(
@@ -346,12 +276,9 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 74),
-
-                      // Title
                       const Text(
-                        'Únete a la comunidad',
+                        'Join the community',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 15,
@@ -362,7 +289,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Crear cuenta',
+                        'Create Account',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 28,
@@ -372,28 +299,11 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                       ),
                       const SizedBox(height: 26),
-
-                      // Name
-                      _sectionLabel('NOMBRE COMPLETO'),
+                      _sectionLabel('FULL NAME'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _nameController,
-                        focusNode: _nameFocusNode,
                         enabled: connectivityModel.isOnline,
-                        keyboardType: TextInputType.name,
-                        textInputAction: TextInputAction.next,
-                        textCapitalization: TextCapitalization.words,
-                        maxLength: _maxNameLength,
-                        onChanged: (_) {
-                          if (_nameError != null) {
-                            setState(() => _nameError = null);
-                          }
-                          if (viewModel.errorMessage != null) {
-                            context.read<SignUpViewModel>().clearError();
-                          }
-                        },
-                        onSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_emailFocusNode),
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -401,8 +311,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: _inputDecoration(
-                          hint: 'Juan Pérez',
-                          hasError: _nameError != null,
+                          hint: 'John Doe',
                           suffixIcon: const Icon(
                             Icons.person,
                             size: 18,
@@ -410,33 +319,12 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-                      if (_nameError != null) _fieldError(_nameError!),
-
-                      const SizedBox(height: 20),
-
-                      // Email
-                      _sectionLabel('CORREO UNIVERSITARIO'),
+                      const SizedBox(height: 26),
+                      _sectionLabel('UNIVERSITY EMAIL'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _emailController,
-                        focusNode: _emailFocusNode,
                         enabled: connectivityModel.isOnline,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        maxLength: _maxEmailLength,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                        ],
-                        onChanged: (_) {
-                          if (_emailError != null) {
-                            setState(() => _emailError = null);
-                          }
-                          if (viewModel.errorMessage != null) {
-                            context.read<SignUpViewModel>().clearError();
-                          }
-                        },
-                        onSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_passwordFocusNode),
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -444,8 +332,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: _inputDecoration(
-                          hint: 'usuario@uniandes.edu.co',
-                          hasError: _emailError != null,
+                          hint: 'student@university.edu.co',
                           suffixIcon: const Icon(
                             Icons.alternate_email,
                             size: 18,
@@ -453,34 +340,13 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-                      if (_emailError != null) _fieldError(_emailError!),
-
-                      const SizedBox(height: 20),
-
-                      // Password
-                      _sectionLabel('CONTRASEÑA'),
+                      const SizedBox(height: 18),
+                      _sectionLabel('PASSWORD'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _passwordController,
-                        focusNode: _passwordFocusNode,
                         obscureText: obscurePassword,
                         enabled: connectivityModel.isOnline,
-                        textInputAction: TextInputAction.next,
-                        maxLength: _maxPasswordLength,
-                        onChanged: (_) {
-                          if (_passwordError != null) {
-                            setState(() => _passwordError = null);
-                          }
-                          // Re-validar confirm si ya tenía error
-                          if (_confirmError != null) {
-                            setState(() {
-                              _confirmError = _validateConfirm(
-                                  _confirmPasswordController.text);
-                            });
-                          }
-                        },
-                        onSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(_confirmFocusNode),
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -489,7 +355,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: '••••••••',
-                          hasError: _passwordError != null,
                           suffixIcon: IconButton(
                             splashRadius: 18,
                             icon: Icon(
@@ -499,33 +364,21 @@ class _SignUpPageState extends State<SignUpPage> {
                               size: 18,
                               color: const Color(0xFF9A9A9A),
                             ),
-                            onPressed: () =>
-                                setState(() => obscurePassword = !obscurePassword),
+                            onPressed: () {
+                              setState(() {
+                                obscurePassword = !obscurePassword;
+                              });
+                            },
                           ),
                         ),
                       ),
-                      if (_passwordError != null) _fieldError(_passwordError!),
-
-                      const SizedBox(height: 20),
-
-                      // Confirm password
-                      _sectionLabel('CONFIRMAR CONTRASEÑA'),
+                      const SizedBox(height: 18),
+                      _sectionLabel('CONFIRM'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _confirmPasswordController,
-                        focusNode: _confirmFocusNode,
-                        obscureText: obscureConfirm,
+                        obscureText: obscurePassword,
                         enabled: connectivityModel.isOnline,
-                        textInputAction: TextInputAction.done,
-                        maxLength: _maxPasswordLength,
-                        onChanged: (_) {
-                          if (_confirmError != null) {
-                            setState(() => _confirmError = null);
-                          }
-                        },
-                        onSubmitted: (_) {
-                          if (canSubmit) _handleSignUp(context);
-                        },
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -534,44 +387,35 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: '••••••••',
-                          hasError: _confirmError != null,
                           suffixIcon: IconButton(
                             splashRadius: 18,
                             icon: Icon(
-                              obscureConfirm
+                              obscurePassword
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
                               size: 18,
                               color: const Color(0xFF9A9A9A),
                             ),
-                            onPressed: () =>
-                                setState(() => obscureConfirm = !obscureConfirm),
+                            onPressed: () {
+                              setState(() {
+                                obscurePassword = !obscurePassword;
+                              });
+                            },
                           ),
                         ),
                       ),
-                      if (_confirmError != null) _fieldError(_confirmError!),
-
-                      const SizedBox(height: 22),
-
-                      // Backend error banner
-                      if (viewModel.errorMessage != null) ...[
-                        _errorBanner(_friendlyError(viewModel.errorMessage!)),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Register button
+                      const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton(
-                          onPressed:
-                              canSubmit ? () => _handleSignUp(context) : null,
+                          onPressed: (viewModel.isLoading || !connectivityModel.isOnline)
+                              ? null
+                              : () => _handleSignUp(context),
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
                             backgroundColor: primaryYellow,
                             foregroundColor: textPrimary,
-                            disabledBackgroundColor:
-                                primaryYellow.withOpacity(0.5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -580,16 +424,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: textPrimary,
-                                  ),
+                                  child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: const [
                                     Text(
-                                      'REGISTRARSE',
+                                      'REGISTER',
                                       style: TextStyle(
                                         fontFamily: 'PlusJakartaSans',
                                         fontSize: 14,
@@ -603,10 +444,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                         ),
                       ),
-
                       const SizedBox(height: 28),
-
-                      // Login link
                       Center(
                         child: GestureDetector(
                           onTap: () => context.go('/login'),
@@ -619,9 +457,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                 fontWeight: FontWeight.w500,
                               ),
                               children: [
-                                TextSpan(text: '¿Ya tienes cuenta? '),
+                                TextSpan(text: "Already have an account? "),
                                 TextSpan(
-                                  text: 'Inicia sesión',
+                                  text: 'Login',
                                   style: TextStyle(
                                     color: textPrimary,
                                     fontWeight: FontWeight.w800,
@@ -632,7 +470,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 36),
                     ],
                   ),
@@ -646,7 +483,10 @@ class _SignUpPageState extends State<SignUpPage> {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               decoration: const BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Color(0xFFE4E4E4), width: 1),
+                  top: BorderSide(
+                    color: Color(0xFFE4E4E4),
+                    width: 1,
+                  ),
                 ),
               ),
               child: Column(
@@ -655,7 +495,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'POLÍTICA DE PRIVACIDAD',
+                        'PRIVACY POLICY',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
@@ -666,7 +506,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       SizedBox(width: 18),
                       Text(
-                        'TÉRMINOS DE USO',
+                        'TERMS OF SERVICE',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
