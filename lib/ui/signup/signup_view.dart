@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'signup_viewmodel.dart';
@@ -28,14 +29,31 @@ class _SignUpPageState extends State<SignUpPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  final _nameFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  final _confirmFocusNode = FocusNode();
+
   bool obscurePassword = true;
+  bool obscureConfirm = true;
+
+  String? _nameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmError;
 
   static const Color primaryYellow = Color(0xFFFFD700);
   static const Color background = Color(0xFFF7F7F5);
   static const Color textPrimary = Color(0xFF1A1A1A);
   static const Color textSecondary = Color(0xFF6E6E6E);
   static const Color borderColor = Color(0xFFBDBDBD);
-  static const Color lightGray = Color(0xFFEAEAEA);
+  static const Color errorRed = Color(0xFFD32F2F);
+  static const Color errorRedLight = Color(0xFFFFEBEE);
+  static const Color errorRedBorder = Color(0xFFEF9A9A);
+
+  static const int _maxNameLength = 60;
+  static const int _maxEmailLength = 80;
+  static const int _maxPasswordLength = 64;
 
   @override
   void dispose() {
@@ -43,57 +61,109 @@ class _SignUpPageState extends State<SignUpPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmFocusNode.dispose();
     super.dispose();
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  String? _validateName(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return 'El nombre es requerido';
+    if (trimmed.length < 2) return 'Ingresa tu nombre completo';
+    if (!RegExp(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'\-]+$").hasMatch(trimmed)) {
+      return 'El nombre solo puede contener letras';
+    }
+    return null;
   }
 
-  Future<void> _handleSignUp() async {
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (name.isEmpty) {
-      _showMessage('Please enter your full name');
-      return;
+  String? _validateEmail(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return 'El correo es requerido';
+    if (!RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
+        .hasMatch(trimmed)) {
+      return 'Ingresa un correo válido';
     }
-
-    if (email.isEmpty) {
-      _showMessage('Please enter your university email');
-      return;
+    if (!trimmed.toLowerCase().endsWith('@uniandes.edu.co')) {
+      return 'Debe ser un correo @uniandes.edu.co';
     }
+    return null;
+  }
 
-    if (password.isEmpty) {
-      _showMessage('Please enter a password');
-      return;
-    }
+  String? _validatePassword(String value) {
+    if (value.isEmpty) return 'La contraseña es requerida';
+    if (value.length < 8) return 'Mínimo 8 caracteres';
+    return null;
+  }
 
-    if (password.length < 8) {
-      _showMessage('Password must be at least 8 characters');
-      return;
-    }
+  String? _validateConfirm(String value) {
+    if (value.isEmpty) return 'Confirma tu contraseña';
+    if (value != _passwordController.text) return 'Las contraseñas no coinciden';
+    return null;
+  }
 
-    if (password != confirmPassword) {
-      _showMessage('Passwords do not match');
-      return;
+  bool _validateForm() {
+    final nameErr = _validateName(_nameController.text);
+    final emailErr = _validateEmail(_emailController.text);
+    final passErr = _validatePassword(_passwordController.text);
+    final confirmErr = _validateConfirm(_confirmPasswordController.text);
+
+    setState(() {
+      _nameError = nameErr;
+      _emailError = emailErr;
+      _passwordError = passErr;
+      _confirmError = confirmErr;
+    });
+
+    return nameErr == null &&
+        emailErr == null &&
+        passErr == null &&
+        confirmErr == null;
+  }
+
+  String _friendlyError(String raw) {
+    final msg = raw.replaceAll('Exception: ', '').toLowerCase();
+
+    if (msg.contains('already') ||
+        msg.contains('exists') ||
+        msg.contains('409') ||
+        msg.contains('duplicate')) {
+      return 'Ya existe una cuenta con ese correo. Intenta iniciar sesión.';
     }
+    if (msg.contains('invalid') || msg.contains('400')) {
+      return 'Los datos ingresados no son válidos. Revísalos e intenta de nuevo.';
+    }
+    if (msg.contains('timeout') || msg.contains('timed out')) {
+      return 'La conexión tardó demasiado. Intenta de nuevo.';
+    }
+    if (msg.contains('network') ||
+        msg.contains('socket') ||
+        msg.contains('connection')) {
+      return 'Sin conexión. Revisa tu internet e intenta de nuevo.';
+    }
+    if (msg.contains('500') || msg.contains('server')) {
+      return 'Error en el servidor. Intenta más tarde.';
+    }
+    return 'No se pudo crear la cuenta. Intenta de nuevo.';
+  }
+
+  Future<void> _handleSignUp(BuildContext context) async {
+    FocusScope.of(context).unfocus();
+    if (!_validateForm()) return;
 
     final viewModel = context.read<SignUpViewModel>();
+    if (viewModel.isLoading) return;
 
     await viewModel.signup(
-      name: name,
-      email: email,
-      password: password,
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
     );
 
     if (!mounted) return;
 
-    if (viewModel.signupSuccess) {
+    if (context.read<SignUpViewModel>().signupSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created successfully. Please log in.'),
@@ -107,7 +177,11 @@ class _SignUpPageState extends State<SignUpPage> {
   InputDecoration _inputDecoration({
     required String hint,
     Widget? suffixIcon,
+    bool hasError = false,
   }) {
+    final activeBorder = hasError ? errorRed : textPrimary;
+    final idleBorder = hasError ? errorRed : borderColor;
+
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(
@@ -117,27 +191,20 @@ class _SignUpPageState extends State<SignUpPage> {
         fontWeight: FontWeight.w500,
       ),
       filled: true,
-      fillColor: background,
+      fillColor: hasError ? errorRedLight : background,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       suffixIcon: suffixIcon,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(9),
-        borderSide: const BorderSide(
-          color: borderColor,
-          width: 1,
-        ),
+        borderSide: BorderSide(color: idleBorder, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(9),
-        borderSide: const BorderSide(
-          color: textPrimary,
-          width: 1.2,
-        ),
+        borderSide: BorderSide(color: activeBorder, width: 1.6),
       ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(9),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
+      counterText: '',
     );
   }
 
@@ -154,21 +221,73 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  Widget _fieldError(String message) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, size: 14, color: errorRed),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 12,
+                color: errorRed,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _errorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: errorRedLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: errorRedBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.warning_amber_rounded, size: 18, color: errorRed),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: errorRed,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final connectivityModel = context.watch<ConnectivityModel>();
     final viewModel = context.watch<SignUpViewModel>();
+
+    final bool canSubmit = !viewModel.isLoading && connectivityModel.isOnline;
+    final backendError =
+        viewModel.errorMessage == null ? null : _friendlyError(viewModel.errorMessage!);
 
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
         child: Column(
           children: [
-            // Banner de conectividad al tope
-            if (!connectivityModel.isOnline)
-              const ConnectivityView(),
-
-            // Contenido principal
+            if (!connectivityModel.isOnline) const ConnectivityView(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -181,8 +300,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 6),
-                      Row(
-                        children: const [
+                      const Row(
+                        children: [
                           Icon(
                             Icons.account_balance,
                             size: 18,
@@ -223,11 +342,23 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                       ),
                       const SizedBox(height: 26),
+
                       _sectionLabel('FULL NAME'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _nameController,
-                        enabled: connectivityModel.isOnline,
+                        focusNode: _nameFocusNode,
+                        enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                        textInputAction: TextInputAction.next,
+                        maxLength: _maxNameLength,
+                        onChanged: (_) {
+                          if (_nameError != null) {
+                            setState(() => _nameError = null);
+                          }
+                        },
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_emailFocusNode);
+                        },
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -236,6 +367,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: 'John Doe',
+                          hasError: _nameError != null,
                           suffixIcon: const Icon(
                             Icons.person,
                             size: 18,
@@ -243,12 +375,26 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 26),
+                      if (_nameError != null) _fieldError(_nameError!),
+
+                      const SizedBox(height: 18),
                       _sectionLabel('UNIVERSITY EMAIL'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _emailController,
-                        enabled: connectivityModel.isOnline,
+                        focusNode: _emailFocusNode,
+                        enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        maxLength: _maxEmailLength,
+                        onChanged: (_) {
+                          if (_emailError != null) {
+                            setState(() => _emailError = null);
+                          }
+                        },
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_passwordFocusNode);
+                        },
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -257,6 +403,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: 'student@university.edu.co',
+                          hasError: _emailError != null,
                           suffixIcon: const Icon(
                             Icons.alternate_email,
                             size: 18,
@@ -264,13 +411,26 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
+                      if (_emailError != null) _fieldError(_emailError!),
+
                       const SizedBox(height: 18),
                       _sectionLabel('PASSWORD'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _passwordController,
+                        focusNode: _passwordFocusNode,
                         obscureText: obscurePassword,
-                        enabled: connectivityModel.isOnline,
+                        enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                        textInputAction: TextInputAction.next,
+                        maxLength: _maxPasswordLength,
+                        onChanged: (_) {
+                          if (_passwordError != null) {
+                            setState(() => _passwordError = null);
+                          }
+                        },
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_confirmFocusNode);
+                        },
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -279,6 +439,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: '••••••••',
+                          hasError: _passwordError != null,
                           suffixIcon: IconButton(
                             splashRadius: 18,
                             icon: Icon(
@@ -296,13 +457,24 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
+                      if (_passwordError != null) _fieldError(_passwordError!),
+
                       const SizedBox(height: 18),
                       _sectionLabel('CONFIRM'),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _confirmPasswordController,
-                        obscureText: obscurePassword,
-                        enabled: connectivityModel.isOnline,
+                        focusNode: _confirmFocusNode,
+                        obscureText: obscureConfirm,
+                        enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                        textInputAction: TextInputAction.done,
+                        maxLength: _maxPasswordLength,
+                        onChanged: (_) {
+                          if (_confirmError != null) {
+                            setState(() => _confirmError = null);
+                          }
+                        },
+                        onSubmitted: (_) => _handleSignUp(context),
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
@@ -311,10 +483,11 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         decoration: _inputDecoration(
                           hint: '••••••••',
+                          hasError: _confirmError != null,
                           suffixIcon: IconButton(
                             splashRadius: 18,
                             icon: Icon(
-                              obscurePassword
+                              obscureConfirm
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
                               size: 18,
@@ -322,24 +495,31 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             onPressed: () {
                               setState(() {
-                                obscurePassword = !obscurePassword;
+                                obscureConfirm = !obscureConfirm;
                               });
                             },
                           ),
                         ),
                       ),
+                      if (_confirmError != null) _fieldError(_confirmError!),
+
+                      if (backendError != null) ...[
+                        const SizedBox(height: 16),
+                        _errorBanner(backendError),
+                      ],
+
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton(
-                          onPressed: (viewModel.isLoading || !connectivityModel.isOnline)
-                              ? null
-                              : _handleSignUp,
+                          onPressed: canSubmit ? () => _handleSignUp(context) : null,
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
                             backgroundColor: primaryYellow,
                             foregroundColor: textPrimary,
+                            disabledBackgroundColor: const Color(0xFFE6E6E6),
+                            disabledForegroundColor: const Color(0xFF9E9E9E),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -350,9 +530,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                   height: 20,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : Row(
+                              : const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
+                                  children: [
                                     Text(
                                       'REGISTER',
                                       style: TextStyle(
@@ -368,6 +548,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                         ),
                       ),
+
                       const SizedBox(height: 28),
                       Center(
                         child: GestureDetector(
@@ -400,8 +581,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             ),
-
-            // Footer
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
@@ -413,8 +592,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
               ),
-              child: Column(
-                children: const [
+              child: const Column(
+                children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
