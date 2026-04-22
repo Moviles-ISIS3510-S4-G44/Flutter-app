@@ -26,7 +26,7 @@ class ListingRepository {
     return ListingSummary(
       id: dto.id,
       title: dto.title,
-      price: dto.price.toString(),
+      price: dto.price,
       category: dto.categoryId.toString(),
       imageUrl: dto.images.isNotEmpty ? dto.images[0] : '',
     );
@@ -46,4 +46,8 @@ class ListingRepository {
       location: dto.location,
     );
   }
+  Future<ListingDetail> getListingById(String listingId) async {
+  final listingDto = await _listingApiService.getListingById(listingId);
+  return _toListingDetail(listingDto);
+}
 }

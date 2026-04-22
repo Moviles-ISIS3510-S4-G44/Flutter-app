@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../login/login_viewmodel.dart';
 
+import '../login/login_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 
@@ -30,8 +29,8 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordFocusNode = FocusNode();
 
   bool obscurePassword = true;
+  bool stayLoggedIn = false;
 
-  // Field-level error messages
   String? _emailError;
   String? _passwordError;
 
@@ -55,8 +54,6 @@ class _LoginPageState extends State<LoginPage> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
-
-  // Validation
 
   bool _isValidEmailFormat(String email) {
     final regex = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$');
@@ -82,14 +79,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _validateForm() {
     final emailErr = _validateEmail(_emailController.text);
     final passErr = _validatePassword(_passwordController.text);
+
     setState(() {
       _emailError = emailErr;
       _passwordError = passErr;
     });
+
     return emailErr == null && passErr == null;
   }
-
-  // Errores backend a mensajes amigables
 
   String _friendlyError(String raw) {
     final msg = raw.replaceAll('Exception: ', '').toLowerCase();
@@ -115,17 +112,17 @@ class _LoginPageState extends State<LoginPage> {
     if (msg.contains('500') || msg.contains('server')) {
       return 'Error en el servidor. Intenta más tarde.';
     }
+
     return 'Algo salió mal. Intenta de nuevo.';
   }
 
-  // Login action
-
   Future<void> _handleLogin(BuildContext context) async {
     FocusScope.of(context).unfocus();
+
     if (!_validateForm()) return;
 
     final viewModel = context.read<LoginViewModel>();
-    if (viewModel.isLoading) return; // guard against double-tap
+    if (viewModel.isLoading) return;
 
     await viewModel.login(
       email: _emailController.text.trim(),
@@ -134,12 +131,14 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
-    if (context.read<LoginViewModel>().isAuthenticated) {
+    if (viewModel.isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.green.shade700,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           duration: const Duration(milliseconds: 1400),
           content: const Row(
             children: [
@@ -157,13 +156,12 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       );
+
       await Future.delayed(const Duration(milliseconds: 900));
       if (!mounted) return;
       context.go('/Home');
     }
   }
-
-  // Builders
 
   InputDecoration _inputDecoration({
     required String hint,
@@ -194,7 +192,9 @@ class _LoginPageState extends State<LoginPage> {
         borderRadius: BorderRadius.circular(9),
         borderSide: BorderSide(color: activeBorder, width: 1.6),
       ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(9),
+      ),
       counterText: '',
     );
   }
@@ -264,12 +264,46 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget _partnerButton({
+    required IconData icon,
+    required String text,
+  }) {
+    return Expanded(
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: textPrimary),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final connectivityModel = context.watch<ConnectivityModel>();
     final viewModel = context.watch<LoginViewModel>();
 
-    final bool canSubmit = !viewModel.isLoading && connectivityModel.isOnline;
+    final backendError = viewModel.errorMessage == null
+        ? null
+        : _friendlyError(viewModel.errorMessage!);
 
     return Scaffold(
       backgroundColor: background,
@@ -277,260 +311,330 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           children: [
             if (!connectivityModel.isOnline) const ConnectivityView(),
-
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 380),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-
-                      // Logo
-                      Row(
-                        children: const [
-                          Icon(
-                            Icons.account_balance,
-                            size: 18,
-                            color: Color(0xFF6A5A00),
-                          ),
-                          SizedBox(width: 6),
-                          Text(
-                            'SCHOLASTIC',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 74),
-
-                      // Title
-                      const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Accede a tu marketplace universitario.',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 26),
-
-                      // Email
-                      _sectionLabel('CORREO UNIVERSITARIO'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _emailController,
-                        focusNode: _emailFocusNode,
-                        enabled: connectivityModel.isOnline,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        maxLength: _maxEmailLength,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                        ],
-                        onChanged: (_) {
-                          if (_emailError != null) {
-                            setState(() => _emailError = null);
-                          }
-                          // Also clear backend error on edit
-                          if (viewModel.errorMessage != null) {
-                            context.read<LoginViewModel>().clearError();
-                          }
-                        },
-                        onSubmitted: (_) =>
-                            FocusScope.of(context).requestFocus(_passwordFocusNode),
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 14,
-                          color: textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: _inputDecoration(
-                          hint: 'usuario@uniandes.edu.co',
-                          hasError: _emailError != null,
-                          suffixIcon: const Icon(
-                            Icons.alternate_email,
-                            size: 18,
-                            color: Color(0xFF9A9A9A),
-                          ),
-                        ),
-                      ),
-                      if (_emailError != null) _fieldError(_emailError!),
-
-                      const SizedBox(height: 18),
-
-                      // Password
-                      _sectionLabel('CONTRASEÑA'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _passwordController,
-                        focusNode: _passwordFocusNode,
-                        obscureText: obscurePassword,
-                        enabled: connectivityModel.isOnline,
-                        textInputAction: TextInputAction.done,
-                        maxLength: _maxPasswordLength,
-                        onChanged: (_) {
-                          if (_passwordError != null) {
-                            setState(() => _passwordError = null);
-                          }
-                          if (viewModel.errorMessage != null) {
-                            context.read<LoginViewModel>().clearError();
-                          }
-                        },
-                        onSubmitted: (_) {
-                          if (canSubmit) _handleLogin(context);
-                        },
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 14,
-                          color: textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: _inputDecoration(
-                          hint: '••••••••',
-                          hasError: _passwordError != null,
-                          suffixIcon: IconButton(
-                            splashRadius: 18,
-                            icon: Icon(
-                              obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 380),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.account_balance,
                               size: 18,
-                              color: const Color(0xFF9A9A9A),
+                              color: Color(0xFF6A5A00),
                             ),
-                            onPressed: () =>
-                                setState(() => obscurePassword = !obscurePassword),
+                            SizedBox(width: 6),
+                            Text(
+                              'SCHOLASTIC',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 74),
+                        const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                            height: 1.1,
                           ),
                         ),
-                      ),
-                      if (_passwordError != null) _fieldError(_passwordError!),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Access your academic marketplace\ndashboard.',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 26),
 
-                      const SizedBox(height: 22),
+                        _sectionLabel('UNIVERSITY EMAIL'),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _emailController,
+                          focusNode: _emailFocusNode,
+                          enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          maxLength: _maxEmailLength,
+                          onChanged: (_) {
+                            if (_emailError != null) {
+                              setState(() => _emailError = null);
+                            }
+                          },
+                          onSubmitted: (_) {
+                            FocusScope.of(context).requestFocus(_passwordFocusNode);
+                          },
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            color: textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: _inputDecoration(
+                            hint: 'student@uniandes.edu.co',
+                            hasError: _emailError != null,
+                            suffixIcon: const Icon(
+                              Icons.alternate_email,
+                              size: 18,
+                              color: Color(0xFF9A9A9A),
+                            ),
+                          ),
+                        ),
+                        if (_emailError != null) _fieldError(_emailError!),
 
-                      // Backend error banner
-                      if (viewModel.errorMessage != null) ...[
-                        _errorBanner(_friendlyError(viewModel.errorMessage!)),
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _sectionLabel('PASSWORD'),
+                            const Text(
+                              'FORGOT PASSWORD?',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                                color: Color(0xFF4F4F4F),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _passwordController,
+                          focusNode: _passwordFocusNode,
+                          obscureText: obscurePassword,
+                          enabled: connectivityModel.isOnline && !viewModel.isLoading,
+                          textInputAction: TextInputAction.done,
+                          maxLength: _maxPasswordLength,
+                          onChanged: (_) {
+                            if (_passwordError != null) {
+                              setState(() => _passwordError = null);
+                            }
+                          },
+                          onSubmitted: (_) => _handleLogin(context),
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            color: textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: _inputDecoration(
+                            hint: '••••••••',
+                            hasError: _passwordError != null,
+                            suffixIcon: IconButton(
+                              splashRadius: 18,
+                              icon: Icon(
+                                obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                size: 18,
+                                color: const Color(0xFF9A9A9A),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  obscurePassword = !obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        if (_passwordError != null) _fieldError(_passwordError!),
+
                         const SizedBox(height: 16),
-                      ],
-
-                      // Login button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: canSubmit ? () => _handleLogin(context) : null,
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: primaryYellow,
-                            foregroundColor: textPrimary,
-                            disabledBackgroundColor: primaryYellow.withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: viewModel.isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: textPrimary,
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Text(
-                                      'INICIAR SESIÓN',
-                                      style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Icon(Icons.arrow_forward, size: 18),
-                                  ],
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: Checkbox(
+                                value: stayLoggedIn,
+                                activeColor: textPrimary,
+                                side: const BorderSide(color: borderColor),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      // Register link
-                      Center(
-                        child: GestureDetector(
-                          onTap: () => context.go('/signup'),
-                          child: RichText(
-                            text: const TextSpan(
+                                onChanged: connectivityModel.isOnline && !viewModel.isLoading
+                                    ? (value) {
+                                        setState(() {
+                                          stayLoggedIn = value ?? false;
+                                        });
+                                      }
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Stay logged in for 30 days',
                               style: TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
-                                color: textSecondary,
                                 fontWeight: FontWeight.w500,
+                                color: textSecondary,
                               ),
-                              children: [
-                                TextSpan(text: '¿No tienes cuenta? '),
-                                TextSpan(
-                                  text: 'Regístrate',
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontWeight: FontWeight.w800,
+                            ),
+                          ],
+                        ),
+
+                        if (backendError != null) ...[
+                          const SizedBox(height: 16),
+                          _errorBanner(backendError),
+                        ],
+
+                        const SizedBox(height: 22),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: (viewModel.isLoading || !connectivityModel.isOnline)
+                                ? null
+                                : () => _handleLogin(context),
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: primaryYellow,
+                              foregroundColor: textPrimary,
+                              disabledBackgroundColor: const Color(0xFFE6E6E6),
+                              disabledForegroundColor: const Color(0xFF9E9E9E),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: viewModel.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'LOGIN',
+                                        style: TextStyle(
+                                          fontFamily: 'PlusJakartaSans',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Icon(Icons.arrow_forward, size: 18),
+                                    ],
                                   ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Divider(
+                                color: Color(0xFFE0E0E0),
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                'PARTNER SIGN-IN',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                  color: Colors.grey,
                                 ),
-                              ],
+                              ),
+                            ),
+                            const Expanded(
+                              child: Divider(
+                                color: Color(0xFFE0E0E0),
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            _partnerButton(
+                              icon: Icons.account_balance,
+                              text: 'EDUID',
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 28),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => context.go('/signup'),
+                            child: RichText(
+                              text: const TextSpan(
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 14,
+                                  color: textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                children: [
+                                  TextSpan(text: "Don't have an account? "),
+                                  TextSpan(
+                                    text: 'Register',
+                                    style: TextStyle(
+                                      color: textPrimary,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 36),
-                    ],
+                        const SizedBox(height: 36),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-
-            // Footer
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               decoration: const BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Color(0xFFE4E4E4), width: 1),
+                  top: BorderSide(
+                    color: Color(0xFFE4E4E4),
+                    width: 1,
+                  ),
                 ),
               ),
-              child: Column(
-                children: const [
+              child: const Column(
+                children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'POLÍTICA DE PRIVACIDAD',
+                        'PRIVACY POLICY',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
@@ -541,7 +645,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(width: 18),
                       Text(
-                        'TÉRMINOS DE USO',
+                        'TERMS OF SERVICE',
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
