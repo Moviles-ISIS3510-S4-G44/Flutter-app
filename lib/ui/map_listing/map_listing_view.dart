@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -52,11 +54,9 @@ class _MapListingViewState extends State<MapListingView> {
           ),
           body: Column(
             children: [
-              if (!connectivityModel.isOnline)
-                const ConnectivityView(),
-
+              if (!connectivityModel.isOnline) const ConnectivityView(),
               Expanded(
-                child: _buildBody(context),
+                child: _buildBody(context, connectivityModel.isOnline),
               ),
             ],
           ),
@@ -65,11 +65,9 @@ class _MapListingViewState extends State<MapListingView> {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, bool isOnline) {
     if (_viewModel.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_viewModel.errorMessage != null) {
@@ -85,9 +83,7 @@ class _MapListingViewState extends State<MapListingView> {
     }
 
     if (!_viewModel.hasListing || !_viewModel.hasValidCoordinates) {
-      return const Center(
-        child: Text('Listing location not available'),
-      );
+      return const Center(child: Text('Listing location not available'));
     }
 
     final listing = _viewModel.listing!;
@@ -95,6 +91,7 @@ class _MapListingViewState extends State<MapListingView> {
 
     return Stack(
       children: [
+        // Mapa
         Positioned.fill(
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
@@ -114,19 +111,61 @@ class _MapListingViewState extends State<MapListingView> {
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
+            // Deshabilitar gestos sin conexión
+            scrollGesturesEnabled: isOnline,
+            zoomGesturesEnabled: isOnline,
+            rotateGesturesEnabled: isOnline,
+            tiltGesturesEnabled: isOnline,
           ),
         ),
-        Positioned(
-          left: 16,
-          right: 16,
-          bottom: 24,
-          child: MapListingPreviewCard(
-            listing: listing,
-            onTap: () {
-              context.push('/listing/${listing.id}');
-            },
+
+        // Overlay de blur cuando no hay conexión
+        if (!isOnline)
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: Container(
+                color: Colors.black.withOpacity(0.35),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.wifi_off, color: Colors.white, size: 48),
+                      SizedBox(height: 14),
+                      Text(
+                        'Sin conexión',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'El mapa no está disponible offline',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+
+        // Preview card (solo visible con conexión)
+        if (isOnline)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: MapListingPreviewCard(
+              listing: listing,
+              onTap: () => context.push('/listing/${listing.id}'),
+            ),
+          ),
       ],
     );
   }
