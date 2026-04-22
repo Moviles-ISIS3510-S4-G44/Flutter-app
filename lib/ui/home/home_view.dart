@@ -21,6 +21,11 @@ class HomeView extends StatelessWidget {
       case 2:
         context.go('/Sell');
         break;
+            case 3:
+        break;
+      case 4:
+        context.go('/profile');
+        break;
     }
   }
 
