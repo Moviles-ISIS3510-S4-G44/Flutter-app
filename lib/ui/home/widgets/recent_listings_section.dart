@@ -21,26 +21,27 @@ class RecentListingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             'Recent Listings',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+            style:  TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
               color: Color(0xFF1F1F1F),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.zero,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 0.75,
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
+            childAspectRatio: 0.60,
           ),
           itemCount: listings.length,
           itemBuilder: (context, index) {

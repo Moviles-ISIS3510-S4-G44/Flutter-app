@@ -18,30 +18,31 @@ class TopInteractionsSection extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Based on your activity',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1F1F1F),
-            ),
-          ),
-          const SizedBox(height: 12),
+            style:  TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
+                color: Color(0xFF1F1F1F),
+              ),
+                        ),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 250,
+            height: 230,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: listings.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final listing = listings[index];
 
                 return SizedBox(
-                  width: 190,
+                  width: 160,
                   child: ListingCard(
                     listing: listing,
                     onTap: () {

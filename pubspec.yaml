@@ -51,6 +51,7 @@ dependencies:
   internet_connection_checker_plus: ^2.7.2
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
   flutter_test:
     sdk: flutter
 
@@ -114,3 +115,9 @@ flutter:
           weight: 700
   assets:
     - .env
+    - assets/images/logo_app.jpg
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_app.jpg"
+  min_sdk_android: 21
