@@ -464,7 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                                 : () => _handleLogin(context),
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
-                              backgroundColor: Color(0xFFFFF0B8),
+                              backgroundColor: Color(0xFFFFE600),
                               foregroundColor: textPrimary,
                               disabledBackgroundColor: const Color(0xFFE6E6E6),
                               disabledForegroundColor: const Color(0xFF9E9E9E),

@@ -59,7 +59,7 @@ class _PreviewImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(4),
       child: SizedBox(
         width: 88,
         height: 88,
