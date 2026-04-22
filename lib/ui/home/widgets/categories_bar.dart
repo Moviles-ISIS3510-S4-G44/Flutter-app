@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 
-class CategoriesBar extends StatefulWidget {
-  const CategoriesBar({super.key});
+class CategoriesBar extends StatelessWidget {
+  final List<String> categories;
+  final String selectedCategory;
+  final ValueChanged<String> onCategorySelected;
 
-  @override
-  State<CategoriesBar> createState() => _CategoriesBarState();
-}
-
-class _CategoriesBarState extends State<CategoriesBar> {
-  final List<String> _categories = [
-    'Books',
-    'Electronics',
-    'Furniture',
-  ];
-
-  int _selectedIndex = 0;
+  const CategoriesBar({
+    super.key,
+    required this.categories,
+    required this.selectedCategory,
+    required this.onCategorySelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +19,14 @@ class _CategoriesBarState extends State<CategoriesBar> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _categories.length,
+        itemCount: categories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final bool isSelected = index == _selectedIndex;
+          final category = categories[index];
+          final isSelected = category == selectedCategory;
 
           return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
+            onTap: () => onCategorySelected(category),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -50,7 +43,7 @@ class _CategoriesBarState extends State<CategoriesBar> {
               ),
               child: Center(
                 child: Text(
-                  _categories[index],
+                  category,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

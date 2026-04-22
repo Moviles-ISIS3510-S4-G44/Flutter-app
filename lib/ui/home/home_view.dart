@@ -21,6 +21,11 @@ class HomeView extends StatelessWidget {
       case 2:
         context.go('/Sell');
         break;
+            case 3:
+        break;
+      case 4:
+        context.go('/profile');
+        break;
     }
   }
 
@@ -37,7 +42,13 @@ class HomeView extends StatelessWidget {
             if (!connectivityModel.isOnline) const ConnectivityView(),
             _SearchBar(isOnline: connectivityModel.isOnline),
             const SizedBox(height: 8),
-            const CategoriesBar(),
+            Consumer<HomeViewModel>(
+                builder: (context, viewModel, _) => CategoriesBar(
+                  categories: viewModel.categories,
+                  selectedCategory: viewModel.selectedCategory,
+                  onCategorySelected: viewModel.updateSelectedCategory,
+                ),
+              ),
             const SizedBox(height: 28),
             const Expanded(child: _HomeBody()),
           ],
