@@ -5,17 +5,17 @@ import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart
 
 class RecentListingsSection extends StatelessWidget {
   final List<ListingSummary> listings;
+  final Map<String, double> distances;
 
   const RecentListingsSection({
     super.key,
     required this.listings,
+    this.distances = const {},
   });
 
   @override
   Widget build(BuildContext context) {
-    if (listings.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (listings.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,9 +47,8 @@ class RecentListingsSection extends StatelessWidget {
             final listing = listings[index];
             return ListingCard(
               listing: listing,
-              onTap: () {
-                context.push('/listing-map/${listing.id}');
-              },
+              distanceKm: distances[listing.id],
+              onTap: () => context.push('/listing-map/${listing.id}'),
             );
           },
         ),
