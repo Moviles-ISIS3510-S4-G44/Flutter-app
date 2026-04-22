@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
@@ -9,6 +10,7 @@ import 'package:marketplace_flutter_application/data/repositories/interaction_re
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
+import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/data/services/interaction_service.dart';
 import 'package:marketplace_flutter_application/data/services/location_service.dart';
@@ -57,7 +59,11 @@ class MyApp extends StatelessWidget {
             tokenStorage: context.read<TokenStorage>(),
           ),
         ),
-
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (context) => ProfileViewModel(
+            repository: context.read<AuthRepository>(),
+          ),
+        ),
         Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
@@ -68,6 +74,8 @@ class MyApp extends StatelessWidget {
         ),
 
         Provider<ListingRepository>(create: (_) => ListingRepository()),
+
+        Provider<CategoryApiService>(create: (_) => CategoryApiService()),
 
         Provider<LocationService>(create: (_) => LocationService()),
 
@@ -93,6 +101,7 @@ class MyApp extends StatelessWidget {
             connectivityService: context.read<ConnectivityService>(),
             listingRepository: context.read<ListingRepository>(),
             interactionRepository: context.read<InteractionRepository>(),
+            categoryApiService: context.read<CategoryApiService>(),
             locationRepository: context.read<LocationRepository>(),
           ),
         ),

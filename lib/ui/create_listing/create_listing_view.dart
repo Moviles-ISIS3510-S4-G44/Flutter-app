@@ -17,13 +17,20 @@ class CreateListingView extends StatelessWidget {
 
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
-      case 0:
-        context.go('/Home');
-        break;
-      case 2:
-        context.go('/Sell');
-        break;
-    }
+        case 0:
+          context.go('/Home');
+          break;
+        case 1:
+          context.go('/Sell');
+          break;
+        case 2:
+          break; // carrito
+        case 3:
+          break; // messages
+        case 4:
+          context.go('/profile');
+          break;
+      }
   }
 
   @override

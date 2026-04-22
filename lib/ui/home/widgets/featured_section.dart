@@ -17,16 +17,17 @@ class FeaturedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (listings.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
             'Featured',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+            style:  TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
               color: Color(0xFF1F1F1F),
             ),
           ),
