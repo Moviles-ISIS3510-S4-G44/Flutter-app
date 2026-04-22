@@ -153,7 +153,7 @@ class _ProfileViewState extends State<ProfileView> {
                           backgroundColor: Colors.redAccent,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                           elevation: 0,
                         ),
