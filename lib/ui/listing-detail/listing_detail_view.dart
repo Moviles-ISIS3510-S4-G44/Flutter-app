@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
@@ -36,6 +37,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
       interactionRepository: context.read<InteractionRepository>(),
       connectivityService: context.read<ConnectivityService>(),
       authRepository: context.read<AuthRepository>(),
+      locationRepository: context.read<LocationRepository>(),
     );
 
     _viewModel.loadListing(widget.listingId);
@@ -100,6 +102,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
             sellerName: _viewModel.seller?.name,
             sellerEmail: _viewModel.seller?.email,
             isLoadingSeller: _viewModel.isLoadingSeller,
+            distanceKm: _viewModel.distanceKm,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
