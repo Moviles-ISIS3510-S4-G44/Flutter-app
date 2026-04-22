@@ -5,14 +5,17 @@ import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart
 
 class FeaturedSection extends StatelessWidget {
   final List<ListingSummary> listings;
+  final Map<String, double> distances;
 
-  const FeaturedSection({super.key, required this.listings});
+  const FeaturedSection({
+    super.key,
+    required this.listings,
+    this.distances = const {},
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (listings.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (listings.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,15 +41,13 @@ class FeaturedSection extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final listing = listings[index];
-
               return SizedBox(
                 width: 170,
                 child: ListingCard(
                   listing: listing,
                   showFeaturedBadge: true,
-                  onTap: () {
-                    context.push('/listing-map/${listing.id}');
-                  },
+                  distanceKm: distances[listing.id],
+                  onTap: () => context.push('/listing-map/${listing.id}'),
                 ),
               );
             },
