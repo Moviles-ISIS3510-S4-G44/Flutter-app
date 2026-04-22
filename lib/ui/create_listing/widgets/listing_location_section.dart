@@ -1,54 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-class ListingLocationSection extends StatefulWidget {
+class ListingLocationSection extends StatelessWidget {
   const ListingLocationSection({super.key});
 
   @override
-  State<ListingLocationSection> createState() => _ListingLocationSectionState();
-}
-
-class _ListingLocationSectionState extends State<ListingLocationSection> {
-  LatLng? _selectedLocation;
-
-  Future<void> _openLocationPicker() async {
-    final LatLng? result = await showDialog<LatLng>(
-      context: context,
-      builder: (_) => LocationPickerDialog(
-        initialLocation: _selectedLocation ?? const LatLng(4.60971, -74.08175),
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedLocation = result;
-      });
-
-      context.read<CreateListingViewModel>().updateLocationFromCoordinates(
-        result.latitude,
-        result.longitude,
-      );
-    }
-  }
-
-  String _buildLocationText(String? location) {
-    if (location == null || location.isEmpty) {
-      return 'Select location';
-    }
-    return 'Location selected';
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final String? location = context.watch<CreateListingViewModel>().location;
+    final viewModel = context.watch<CreateListingViewModel>();
+
+    // Reconstruir LatLng desde el viewmodel — fuente de verdad única
+    final LatLng? savedLocation = (viewModel.locationLat != null &&
+            viewModel.locationLng != null)
+        ? LatLng(viewModel.locationLat!, viewModel.locationLng!)
+        : null;
+
+    final hasError = viewModel.locationError != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Location',
+          'Ubicación',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF1F1F1F),
@@ -56,45 +31,95 @@ class _ListingLocationSectionState extends State<ListingLocationSection> {
         ),
         const SizedBox(height: 12),
         InkWell(
-          onTap: _openLocationPicker,
+          onTap: () => _openLocationPicker(context, savedLocation),
           borderRadius: BorderRadius.circular(16),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: hasError ? const Color(0xFFFFEBEE) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFD1D5DB)),
+              border: Border.all(
+                color: hasError
+                    ? const Color(0xFFD32F2F)
+                    : const Color(0xFFD1D5DB),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.location_on_outlined,
-                  color: Color(0xFF374151),
+                  color: hasError
+                      ? const Color(0xFFD32F2F)
+                      : const Color(0xFF374151),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _buildLocationText(location),
-                    style: const TextStyle(
+                    savedLocation != null
+                        ? 'Ubicación seleccionada ✓'
+                        : 'Seleccionar ubicación',
+                    style: TextStyle(
                       fontSize: 15,
-                      color: Color(0xFF1F1F1F),
-                      fontWeight: FontWeight.w500,
+                      color: savedLocation != null
+                          ? const Color(0xFF1F1F1F)
+                          : const Color(0xFF9AA4B2),
+                      fontWeight: savedLocation != null
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFF9CA3AF),
-                ),
+                const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
               ],
             ),
           ),
         ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 14, color: Color(0xFFD32F2F)),
+                const SizedBox(width: 4),
+                Text(
+                  viewModel.locationError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFD32F2F),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
+
+  Future<void> _openLocationPicker(
+      BuildContext context, LatLng? currentLocation) async {
+    const defaultLocation = LatLng(4.60271, -74.06470); // Campus Uniandes
+
+    final LatLng? result = await showDialog<LatLng>(
+      context: context,
+      builder: (_) => LocationPickerDialog(
+        // Usa la ubicación guardada en el viewmodel, no estado local
+        initialLocation: currentLocation ?? defaultLocation,
+      ),
+    );
+
+    if (result != null && context.mounted) {
+      context.read<CreateListingViewModel>().updateLocationFromCoordinates(
+            result.latitude,
+            result.longitude,
+          );
+    }
+  }
 }
+
+// ── Location picker dialog ────────────────────────────────────────────────────
 
 class LocationPickerDialog extends StatefulWidget {
   final LatLng initialLocation;
@@ -121,10 +146,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
   void _centerOnPickedLocation() {
     _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: _pickedLocation,
-          zoom: 16,
-        ),
+        CameraPosition(target: _pickedLocation, zoom: 16),
       ),
     );
   }
@@ -137,23 +159,53 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isOnline = context.watch<ConnectivityModel>().isOnline;
+
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SizedBox(
         width: double.infinity,
         height: 500,
         child: Column(
           children: [
+            // Banner de sin conexión
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFD700),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, size: 16, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Sin conexión. El mapa puede no cargar correctamente.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      'Select location',
+                      'Selecciona la ubicación',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF1F1F1F),
@@ -167,6 +219,8 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                 ],
               ),
             ),
+
+            // Map
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -177,15 +231,13 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                       GoogleMap(
                         initialCameraPosition: CameraPosition(
                           target: widget.initialLocation,
-                          zoom: 14,
+                          zoom: 15,
                         ),
                         onMapCreated: (controller) {
                           _mapController = controller;
                         },
                         onTap: (position) {
-                          setState(() {
-                            _pickedLocation = position;
-                          });
+                          setState(() => _pickedLocation = position);
                         },
                         markers: {
                           Marker(
@@ -202,6 +254,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                         tiltGesturesEnabled: true,
                         compassEnabled: true,
                       ),
+                      // Botón centrar en pin
                       Positioned(
                         right: 12,
                         bottom: 12,
@@ -215,10 +268,8 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                             child: const SizedBox(
                               width: 46,
                               height: 46,
-                              child: Icon(
-                                Icons.my_location,
-                                color: Color(0xFF111827),
-                              ),
+                              child: Icon(Icons.my_location,
+                                  color: Color(0xFF111827)),
                             ),
                           ),
                         ),
@@ -228,6 +279,8 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                 ),
               ),
             ),
+
+            // Buttons
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Row(
@@ -241,7 +294,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: const Text('Cancelar'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -256,7 +309,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text('OK'),
+                      child: const Text('Confirmar'),
                     ),
                   ),
                 ],

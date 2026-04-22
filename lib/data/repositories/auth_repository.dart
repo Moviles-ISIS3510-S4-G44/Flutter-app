@@ -12,16 +12,13 @@ class AuthRepository {
   AuthRepository({required this.authService, required this.tokenStorage});
 
   Future<SignupResponseDto> signup({
-  required String name,
-  required String email,
-  required String password,
-}) async {
-  final dto = SignupDto(name: name, email: email, password: password);
-
-  final response = await authService.signup(dto);
-
-  return response;
-}
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final dto = SignupDto(name: name, email: email, password: password);
+    return authService.signup(dto);
+  }
 
   Future<AppUser> login({
     required String email,
@@ -53,7 +50,6 @@ class AuthRepository {
 
     try {
       final userDto = await authService.getCurrentUser(token);
-
       return AppUser(
         id: userDto.id,
         name: userDto.name,
@@ -68,12 +64,24 @@ class AuthRepository {
 
   Future<AppUser> getMyProfile() async {
     final token = await tokenStorage.getToken();
-
-    if (token == null) {
-      throw Exception('No hay sesión activa');
-    }
+    if (token == null) throw Exception('No hay sesión activa');
 
     final userDto = await authService.getCurrentUser(token);
+    return AppUser(
+      id: userDto.id,
+      name: userDto.name,
+      email: userDto.email,
+      rating: userDto.rating,
+    );
+  }
+
+  /// Busca un usuario por ID usando el token almacenado
+  Future<AppUser?> getUserById(String userId) async {
+    final token = await tokenStorage.getToken();
+    if (token == null) return null;
+
+    final userDto = await authService.getUserById(userId, token);
+    if (userDto == null) return null;
 
     return AppUser(
       id: userDto.id,

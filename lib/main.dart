@@ -86,9 +86,13 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        Provider<CategoryRepository>(create: (_) => CategoryRepository()),
+
         ChangeNotifierProvider<CreateListingViewModel>(
           create: (context) => CreateListingViewModel(
-            categoryRepository: CategoryRepository(),
+            connectivityService: context.read<ConnectivityService>(),
+            categoryRepository: context.read<CategoryRepository>(),
+            listingRepository: context.read<ListingRepository>(),
             authRepository: context.read<AuthRepository>(),
           ),
         ),
