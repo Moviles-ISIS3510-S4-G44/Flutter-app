@@ -51,7 +51,7 @@ class HomeView extends StatelessWidget {
   }
 }
 
-// ── App bar ───────────────────────────────────────────────────────────────────
+// App bar 
 
 class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomeAppBar();
@@ -78,7 +78,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ── Search bar ────────────────────────────────────────────────────────────────
+// Search bar 
 
 class _SearchBar extends StatelessWidget {
   final bool isOnline;
@@ -127,7 +127,7 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-// ── Body ──────────────────────────────────────────────────────────────────────
+// Body 
 
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
@@ -200,10 +200,14 @@ class _HomeBody extends StatelessWidget {
             if (!isSearching) ...[
               TopInteractionsSection(
                 listings: viewModel.topInteractionListings,
+                distances: viewModel.distances,
               ),
               if (viewModel.topInteractionListings.isNotEmpty)
                 const SizedBox(height: 24),
-              FeaturedSection(listings: viewModel.featuredListings),
+              FeaturedSection(
+                listings: viewModel.featuredListings,
+                distances: viewModel.distances,
+              ),
               const SizedBox(height: 24),
             ],
 
@@ -243,7 +247,10 @@ class _HomeBody extends StatelessWidget {
                 ),
               )
             else
-              RecentListingsSection(listings: viewModel.filteredListings),
+              RecentListingsSection(
+                listings: viewModel.filteredListings,
+                distances: viewModel.distances,
+              ),
 
             const SizedBox(height: 16),
           ],
