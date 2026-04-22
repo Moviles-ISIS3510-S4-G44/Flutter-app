@@ -40,6 +40,8 @@ class HomeView extends StatelessWidget {
       value: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFFFFE600),
         statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: const Color(0xFFFFE600),

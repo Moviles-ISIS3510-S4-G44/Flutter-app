@@ -13,12 +13,11 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 86,
+      height: 72,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            top: 10,
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -65,7 +64,7 @@ class AppBottomNavBar extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: -2,
+            top: -10,
             left: 0,
             right: 0,
             child: Center(
@@ -104,28 +103,25 @@ class _NavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(
-          height: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 6),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 isSelected ? selectedIcon : icon,
                 size: 22,
                 color: isSelected ? selectedColor : unselectedColor,
               ),
-              const SizedBox(height: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? selectedColor : unselectedColor,
-                  ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? selectedColor : unselectedColor,
                 ),
               ),
             ],
@@ -154,19 +150,15 @@ class _CenterCartItem extends StatelessWidget {
       onTap: onTap,
       child: SizedBox(
         width: 86,
-        height: 86,
+        height: 82,
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            const Positioned(
-              bottom: 8,
-              child: SizedBox(),
-            ),
             Positioned(
               top: 0,
               child: Container(
-                width: 56,
-                height: 56,
+                width: 58,
+                height: 58,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -190,7 +182,7 @@ class _CenterCartItem extends StatelessWidget {
               ),
             ),
             Positioned(
-              bottom: 8,
+              bottom: 6,
               child: Text(
                 'Cart',
                 style: TextStyle(
