@@ -23,7 +23,7 @@ class ListingLocationSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Ubicación',
+          'Location',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF1F1F1F),
@@ -57,8 +57,8 @@ class ListingLocationSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     savedLocation != null
-                        ? 'Ubicación seleccionada ✓'
-                        : 'Seleccionar ubicación',
+                        ? 'Location selected ✓'
+                        : 'Select location',
                     style: TextStyle(
                       fontSize: 15,
                       color: savedLocation != null

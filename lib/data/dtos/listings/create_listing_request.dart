@@ -6,7 +6,6 @@ class CreateListingRequest {
   final int price;
   final String condition;
   final List<String> images;
-  final String status;
   final String location;
 
   const CreateListingRequest({
@@ -17,7 +16,6 @@ class CreateListingRequest {
     required this.price,
     required this.condition,
     required this.images,
-    required this.status,
     required this.location,
   });
 
@@ -30,7 +28,6 @@ class CreateListingRequest {
       'price': price,
       'condition': condition,
       'images': images,
-      'status': status,
       'location': location,
     };
   }

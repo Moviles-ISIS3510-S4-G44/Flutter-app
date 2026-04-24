@@ -7,7 +7,6 @@ class ListingDto {
   final int price;
   final String condition;
   final List<String> images;
-  final String status;
   final String location;
 
   const ListingDto({
@@ -19,7 +18,6 @@ class ListingDto {
     required this.price,
     required this.condition,
     required this.images,
-    required this.status,
     required this.location,
   });
 
@@ -35,7 +33,6 @@ class ListingDto {
       images: (json['images'] as List<dynamic>)
           .map((image) => image as String)
           .toList(),
-      status: json['status'] as String,
       location: json['location'] as String,
     );
   }

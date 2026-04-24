@@ -20,6 +20,15 @@ class ListingDescriptionSection extends StatelessWidget {
             color: Color(0xFF1F1F1F),
           ),
         ),
+        const SizedBox(height: 6),
+        const Text(
+          'Write at least 10 characters.',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF6B7280),
+          ),
+        ),
         const SizedBox(height: 12),
         TextField(
           maxLines: 6,
@@ -37,6 +46,8 @@ class ListingDescriptionSection extends StatelessWidget {
               color: Color(0xFF9AA4B2),
               fontWeight: FontWeight.w400,
             ),
+            errorText: viewModel.descriptionError,
+            errorMaxLines: 2,
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.all(18),
@@ -58,6 +69,20 @@ class ListingDescriptionSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               borderSide: const BorderSide(
                 color: Color(0xFFF3D13B),
+                width: 1.8,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: Color(0xFFD32F2F),
+                width: 1.4,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(
+                color: Color(0xFFD32F2F),
                 width: 1.8,
               ),
             ),
