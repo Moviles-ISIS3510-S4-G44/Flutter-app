@@ -4,6 +4,7 @@ class ListingSummary {
   final int price;
   final String category;
   final String imageUrl;
+  final String? location;
 
   const ListingSummary({
     required this.id,
@@ -11,5 +12,6 @@ class ListingSummary {
     required this.price,
     required this.category,
     required this.imageUrl,
+    this.location,
   });
 }
