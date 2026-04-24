@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
@@ -23,12 +24,38 @@ class MapListingView extends StatefulWidget {
 
 class _MapListingViewState extends State<MapListingView> {
   late final MapListingViewModel _viewModel;
+  bool _hasLocationPermission = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = MapListingViewModel();
     _viewModel.loadListing(widget.listingId);
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _hasLocationPermission =
+            permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _hasLocationPermission = false;
+      });
+    }
   }
 
   @override
@@ -91,7 +118,6 @@ class _MapListingViewState extends State<MapListingView> {
 
     return Stack(
       children: [
-        // Mapa
         Positioned.fill(
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
@@ -108,18 +134,16 @@ class _MapListingViewState extends State<MapListingView> {
                 ),
               ),
             },
-            myLocationButtonEnabled: false,
+            myLocationEnabled: _hasLocationPermission,
+            myLocationButtonEnabled: _hasLocationPermission,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
-            // Deshabilitar gestos sin conexión
             scrollGesturesEnabled: isOnline,
             zoomGesturesEnabled: isOnline,
             rotateGesturesEnabled: isOnline,
             tiltGesturesEnabled: isOnline,
           ),
         ),
-
-        // Overlay de blur cuando no hay conexión
         if (!isOnline)
           Positioned.fill(
             child: BackdropFilter(
@@ -154,8 +178,6 @@ class _MapListingViewState extends State<MapListingView> {
               ),
             ),
           ),
-
-        // Preview card (solo visible con conexión)
         if (isOnline)
           Positioned(
             left: 16,
