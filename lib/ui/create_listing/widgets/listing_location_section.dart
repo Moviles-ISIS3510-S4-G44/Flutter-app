@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
@@ -11,11 +12,10 @@ class ListingLocationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<CreateListingViewModel>();
 
-    // Reconstruir LatLng desde el viewmodel — fuente de verdad única
-    final LatLng? savedLocation = (viewModel.locationLat != null &&
-            viewModel.locationLng != null)
-        ? LatLng(viewModel.locationLat!, viewModel.locationLng!)
-        : null;
+    final LatLng? savedLocation =
+        (viewModel.locationLat != null && viewModel.locationLng != null)
+            ? LatLng(viewModel.locationLat!, viewModel.locationLng!)
+            : null;
 
     final hasError = viewModel.locationError != null;
 
@@ -80,8 +80,11 @@ class ListingLocationSection extends StatelessWidget {
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Row(
               children: [
-                const Icon(Icons.error_outline,
-                    size: 14, color: Color(0xFFD32F2F)),
+                const Icon(
+                  Icons.error_outline,
+                  size: 14,
+                  color: Color(0xFFD32F2F),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   viewModel.locationError!,
@@ -99,13 +102,14 @@ class ListingLocationSection extends StatelessWidget {
   }
 
   Future<void> _openLocationPicker(
-      BuildContext context, LatLng? currentLocation) async {
-    const defaultLocation = LatLng(4.60271, -74.06470); // Campus Uniandes
+    BuildContext context,
+    LatLng? currentLocation,
+  ) async {
+    const defaultLocation = LatLng(4.60271, -74.06470);
 
     final LatLng? result = await showDialog<LatLng>(
       context: context,
       builder: (_) => LocationPickerDialog(
-        // Usa la ubicación guardada en el viewmodel, no estado local
         initialLocation: currentLocation ?? defaultLocation,
       ),
     );
@@ -118,8 +122,6 @@ class ListingLocationSection extends StatelessWidget {
     }
   }
 }
-
-// ── Location picker dialog ────────────────────────────────────────────────────
 
 class LocationPickerDialog extends StatefulWidget {
   final LatLng initialLocation;
@@ -141,6 +143,19 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
   void initState() {
     super.initState();
     _pickedLocation = widget.initialLocation;
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        await Geolocator.requestPermission();
+      }
+    } catch (_) {
+      // Falla silenciosamente si no se puede pedir permiso
+    }
   }
 
   void _centerOnPickedLocation() {
@@ -169,16 +184,18 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
         height: 500,
         child: Column(
           children: [
-            // Banner de sin conexión
             if (!isOnline)
               Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: const BoxDecoration(
                   color: Color(0xFFFFD700),
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
                 ),
                 child: const Row(
                   children: [
@@ -197,8 +214,6 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                   ],
                 ),
               ),
-
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
               child: Row(
@@ -219,8 +234,6 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                 ],
               ),
             ),
-
-            // Map
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -245,8 +258,9 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                             position: _pickedLocation,
                           ),
                         },
-                        zoomControlsEnabled: false,
+                        myLocationEnabled: true,
                         myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
                         mapToolbarEnabled: false,
                         scrollGesturesEnabled: true,
                         zoomGesturesEnabled: true,
@@ -254,7 +268,6 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                         tiltGesturesEnabled: true,
                         compassEnabled: true,
                       ),
-                      // Botón centrar en pin
                       Positioned(
                         right: 12,
                         bottom: 12,
@@ -268,8 +281,10 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                             child: const SizedBox(
                               width: 46,
                               height: 46,
-                              child: Icon(Icons.my_location,
-                                  color: Color(0xFF111827)),
+                              child: Icon(
+                                Icons.my_location,
+                                color: Color(0xFF111827),
+                              ),
                             ),
                           ),
                         ),
@@ -279,8 +294,6 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
                 ),
               ),
             ),
-
-            // Buttons
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Row(
