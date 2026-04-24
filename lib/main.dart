@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -61,9 +62,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider<ProfileViewModel>(
-          create: (context) => ProfileViewModel(
-            repository: context.read<AuthRepository>(),
-          ),
+          create: (context) =>
+              ProfileViewModel(repository: context.read<AuthRepository>()),
         ),
         Provider<InteractionService>(create: (_) => InteractionService()),
 
@@ -114,6 +114,7 @@ class MyApp extends StatelessWidget {
         ),
 
         Provider<CategoryRepository>(create: (_) => CategoryRepository()),
+        Provider<ImageUploadRepository>(create: (_) => ImageUploadRepository()),
 
         ChangeNotifierProvider<CreateListingViewModel>(
           create: (context) => CreateListingViewModel(
@@ -121,6 +122,7 @@ class MyApp extends StatelessWidget {
             categoryRepository: context.read<CategoryRepository>(),
             listingRepository: context.read<ListingRepository>(),
             authRepository: context.read<AuthRepository>(),
+            imageUploadRepository: context.read<ImageUploadRepository>(),
           ),
         ),
       ],
