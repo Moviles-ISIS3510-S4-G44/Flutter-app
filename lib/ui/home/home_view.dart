@@ -153,7 +153,6 @@ class _HomeBody extends StatelessWidget {
               if (!isSearching) ...[
                 TopInteractionsSection(
                   listings: viewModel.topInteractionListings,
-                distances: viewModel.distances,
                 ),
                 if (viewModel.topInteractionListings.isNotEmpty)
                   const SizedBox(height: 16),
@@ -185,8 +184,8 @@ class _HomeBody extends StatelessWidget {
                 )
               else
                 RecentListingsSection(
-                
-                  listings: viewModel.filteredListings,
+                  
+                listings: viewModel.filteredListings,
                 distances: viewModel.distances,
               ,
                 ),

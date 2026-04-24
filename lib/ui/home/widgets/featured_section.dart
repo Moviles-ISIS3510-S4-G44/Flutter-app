@@ -31,30 +31,6 @@ class FeaturedSection extends StatelessWidget {
               color: Color(0xFF1F1F1F),
             ),
           ),
-<<<<<<< HEAD
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 230,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: listings.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final listing = listings[index];
-
-                return SizedBox(
-                  width: 160,
-                  child: ListingCard(
-                    listing: listing,
-                    showFeaturedBadge: true,
-                    onTap: () {
-                      context.push('/listing-map/${listing.id}');
-                    },
-                  ),
-                );
-              },
-            ),
-=======
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -76,10 +52,9 @@ class FeaturedSection extends StatelessWidget {
                 ),
               );
             },
->>>>>>> 9debd14 (add distance to feature)
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
