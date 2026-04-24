@@ -9,6 +9,7 @@ class ListingDetailBody extends StatelessWidget {
   final String? sellerName;
   final String? sellerEmail;
   final bool isLoadingSeller;
+  final double? distanceKm;
 
   const ListingDetailBody({
     super.key,
@@ -16,6 +17,7 @@ class ListingDetailBody extends StatelessWidget {
     this.sellerName,
     this.sellerEmail,
     this.isLoadingSeller = false,
+    this.distanceKm,
   });
 
   @override
@@ -31,7 +33,10 @@ class ListingDetailBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListingInfoSection(listing: listing),
+              ListingInfoSection(
+                  listing: listing,
+                  distanceKm: distanceKm,
+                ),
               const SizedBox(height: 24),
               SellerSection(
                 sellerName: sellerName,

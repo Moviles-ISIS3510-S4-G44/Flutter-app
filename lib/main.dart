@@ -13,6 +13,8 @@ import 'package:marketplace_flutter_application/data/services/auth_service.dart'
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/data/services/interaction_service.dart';
+import 'package:marketplace_flutter_application/data/services/location_service.dart';
+import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
 
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 
@@ -73,7 +75,23 @@ class MyApp extends StatelessWidget {
 
         Provider<ListingRepository>(create: (_) => ListingRepository()),
 
+        Provider<LocationService>(create: (_) => LocationService()),
+
+        Provider<LocationRepository>(
+          create: (context) => LocationRepository(
+            locationService: context.read<LocationService>(),
+          ),
+        ),
+
         Provider<CategoryApiService>(create: (_) => CategoryApiService()),
+
+        Provider<LocationService>(create: (_) => LocationService()),
+
+        Provider<LocationRepository>(
+          create: (context) => LocationRepository(
+            locationService: context.read<LocationService>(),
+          ),
+        ),
 
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
@@ -91,7 +109,9 @@ class MyApp extends StatelessWidget {
             connectivityService: context.read<ConnectivityService>(),
             listingRepository: context.read<ListingRepository>(),
             interactionRepository: context.read<InteractionRepository>(),
+            locationRepository: context.read<LocationRepository>(),
             categoryApiService: context.read<CategoryApiService>(),
+            locationRepository: context.read<LocationRepository>(),
           ),
         ),
 

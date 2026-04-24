@@ -29,6 +29,7 @@ class ListingRepository {
       price: dto.price,
       category: dto.categoryId.toString(),
       imageUrl: dto.images.isNotEmpty ? dto.images[0] : '',
+      location: dto.location,
     );
   }
 
