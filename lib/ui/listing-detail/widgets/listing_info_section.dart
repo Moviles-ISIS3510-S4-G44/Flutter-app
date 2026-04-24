@@ -3,11 +3,18 @@ import 'package:marketplace_flutter_application/models/listings/listing_detail.d
 
 class ListingInfoSection extends StatelessWidget {
   final ListingDetail listing;
+  final double? distanceKm;
 
   const ListingInfoSection({
     super.key,
     required this.listing,
+    this.distanceKm,
   });
+
+  String _formatDistance(double km) {
+    if (km < 1.0) return '${(km * 1000).round()} m de tu ubicación';
+    return '${km.toStringAsFixed(1)} km de tu ubicación';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +45,27 @@ class ListingInfoSection extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        if (distanceKm != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.location_on_outlined,
+                size: 16,
+                color: Color(0xFF6B7280),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _formatDistance(distanceKm!),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -45,10 +73,7 @@ class ListingInfoSection extends StatelessWidget {
 
 class _StatusBadge extends StatelessWidget {
   final String status;
-
-  const _StatusBadge({
-    required this.status,
-  });
+  const _StatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +85,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.toUpperCase(),
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.w600),
       ),
     );
   }

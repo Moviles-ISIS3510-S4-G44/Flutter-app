@@ -5,17 +5,17 @@ import 'package:marketplace_flutter_application/ui/home/widgets/listingCard.dart
 
 class TopInteractionsSection extends StatelessWidget {
   final List<ListingSummary> listings;
+  final Map<String, double> distances;
 
   const TopInteractionsSection({
     super.key,
     required this.listings,
+    this.distances = const {},
   });
 
   @override
   Widget build(BuildContext context) {
-    if (listings.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (listings.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -40,14 +40,12 @@ class TopInteractionsSection extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final listing = listings[index];
-
                 return SizedBox(
                   width: 160,
                   child: ListingCard(
                     listing: listing,
-                    onTap: () {
-                      context.push('/listing-map/${listing.id}');
-                    },
+                    distanceKm: distances[listing.id],
+                    onTap: () => context.push('/listing-map/${listing.id}'),
                   ),
                 );
               },

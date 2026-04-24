@@ -4,12 +4,14 @@ import 'package:marketplace_flutter_application/models/listings/listing_summary.
 class ListingCard extends StatelessWidget {
   final ListingSummary listing;
   final bool showFeaturedBadge;
+  final double? distanceKm;
   final VoidCallback? onTap;
 
   const ListingCard({
     super.key,
     required this.listing,
     this.showFeaturedBadge = false,
+    this.distanceKm,
     this.onTap,
   });
 
@@ -27,6 +29,13 @@ class ListingCard extends StatelessWidget {
     }
 
     return buffer.toString();
+  }
+
+  String _formatDistance(double km) {
+    if (km < 1.0) {
+      return '${(km * 1000).round()} m';
+    }
+    return '${km.toStringAsFixed(1)} km';
   }
 
   @override
@@ -85,6 +94,41 @@ class ListingCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // Chip de distancia — solo si está disponible
+                    if (distanceKm != null)
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.55),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                size: 11,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                _formatDistance(distanceKm!),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                 ],
               ),
             ),

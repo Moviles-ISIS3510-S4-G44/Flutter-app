@@ -73,6 +73,8 @@ class HomeView extends StatelessWidget {
   }
 }
 
+// Body 
+
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
@@ -154,7 +156,10 @@ class _HomeBody extends StatelessWidget {
                 ),
                 if (viewModel.topInteractionListings.isNotEmpty)
                   const SizedBox(height: 16),
-                FeaturedSection(listings: viewModel.featuredListings),
+                FeaturedSection(
+                listings: viewModel.featuredListings,
+                distances: viewModel.distances,
+              ),
                 const SizedBox(height: 16),
               ],
               if (isSearching && viewModel.filteredListings.isEmpty)
@@ -179,7 +184,10 @@ class _HomeBody extends StatelessWidget {
                 )
               else
                 RecentListingsSection(
-                  listings: viewModel.filteredListings,
+                  
+                listings: viewModel.filteredListings,
+                distances: viewModel.distances,
+              ,
                 ),
             ],
           ),
