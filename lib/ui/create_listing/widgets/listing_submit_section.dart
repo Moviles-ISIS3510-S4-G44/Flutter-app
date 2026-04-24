@@ -12,10 +12,15 @@ class ListingSubmitSection extends StatelessWidget {
     final viewModel = context.watch<CreateListingViewModel>();
     final connectivityModel = context.watch<ConnectivityModel>();
 
+    final canPressSubmit = viewModel.canSubmit && connectivityModel.isOnline;
+    print('BUTTON DEBUG');
+print('canSubmit: ${viewModel.canSubmit}');
+print('isOnline: ${connectivityModel.isOnline}');
+print('isSubmitting: ${viewModel.isSubmitting}');
+print('selectedImages: ${viewModel.selectedImages.length}');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Error banner
         if (viewModel.submitErrorMessage != null) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -27,8 +32,11 @@ class ListingSubmitSection extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.warning_amber_rounded,
-                    size: 18, color: Color(0xFFD32F2F)),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 18,
+                  color: Color(0xFFD32F2F),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -46,11 +54,10 @@ class ListingSubmitSection extends StatelessWidget {
           const SizedBox(height: 12),
         ],
 
-        // Submit button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: (viewModel.isSubmitting || !connectivityModel.isOnline)
+            onPressed: !canPressSubmit
                 ? null
                 : () async {
                     final success = await context
@@ -70,8 +77,11 @@ class ListingSubmitSection extends StatelessWidget {
                           duration: const Duration(milliseconds: 1600),
                           content: const Row(
                             children: [
-                              Icon(Icons.check_circle_outline,
-                                  color: Colors.white, size: 18),
+                              Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                               SizedBox(width: 10),
                               Text(
                                 '¡Listing publicado exitosamente!',
@@ -84,7 +94,9 @@ class ListingSubmitSection extends StatelessWidget {
                           ),
                         ),
                       );
+
                       await Future.delayed(const Duration(milliseconds: 1200));
+
                       if (!context.mounted) return;
                       context.go('/Home');
                     }
@@ -92,7 +104,8 @@ class ListingSubmitSection extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF3E39A),
               foregroundColor: const Color(0xFF1F1F1F),
-              disabledBackgroundColor: const Color(0xFFF3E39A).withOpacity(0.5),
+              disabledBackgroundColor: const Color(0xFFF3E39A).withOpacity(0.45),
+              disabledForegroundColor: const Color(0xFF1F1F1F).withOpacity(0.45),
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(

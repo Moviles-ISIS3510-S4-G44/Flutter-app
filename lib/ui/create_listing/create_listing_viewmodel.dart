@@ -31,13 +31,12 @@ class CreateListingViewModel extends ChangeNotifier {
   Category? selectedCategory;
 
   // Condition
-  final List<String> conditions = ['New', 'Like New', 'Used'];
-  String selectedCondition = 'Like New';
+  final List<String> conditions = ['new', 'used', 'refurbished'];
+  String selectedCondition = 'used';
 
   // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
-  final int maxImages = 5;
 
   // Form fields
   String title = '';
@@ -59,18 +58,15 @@ class CreateListingViewModel extends ChangeNotifier {
     required CategoryRepository categoryRepository,
     required ListingRepository listingRepository,
     required AuthRepository authRepository,
-  })  : _connectivityService = connectivityService,
-        _categoryRepository = categoryRepository,
-        _listingRepository = listingRepository,
-        _authRepository = authRepository {
+  }) : _connectivityService = connectivityService,
+       _categoryRepository = categoryRepository,
+       _listingRepository = listingRepository,
+       _authRepository = authRepository {
     _initialize();
   }
 
   Future<void> _initialize() async {
-    await Future.wait([
-      loadCategories(),
-      loadCurrentUser(),
-    ]);
+    await Future.wait([loadCategories(), loadCurrentUser()]);
   }
 
   // Field updates
@@ -122,7 +118,7 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // User / categories loading 
+  // User / categories loading
 
   Future<void> loadCurrentUser() async {
     isLoadingUser = true;
@@ -133,7 +129,8 @@ class CreateListingViewModel extends ChangeNotifier {
       currentUser = await _authRepository.getMyProfile();
     } catch (error) {
       currentUser = null;
-      userErrorMessage = 'No se pudo verificar la sesión. Inicia sesión de nuevo.';
+      userErrorMessage =
+          'No se pudo verificar la sesión. Inicia sesión de nuevo.';
     } finally {
       isLoadingUser = false;
       notifyListeners();
@@ -164,26 +161,26 @@ class CreateListingViewModel extends ChangeNotifier {
     }
   }
 
-  // Image picking 
+  // Image picking
 
   Future<void> pickImageFromGallery() async {
-    if (selectedImages.length >= maxImages) return;
-    final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-    if (selectedImages.length < maxImages) {
-      selectedImages = [...selectedImages, image];
-      notifyListeners();
-    }
+    final List<XFile> images = await _imagePicker.pickMultiImage();
+
+    if (images.isEmpty) return;
+
+    selectedImages = [...selectedImages, ...images];
+    notifyListeners();
   }
 
   Future<void> pickImageFromCamera() async {
-    if (selectedImages.length >= maxImages) return;
-    final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera);
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+
     if (image == null) return;
-    if (selectedImages.length < maxImages) {
-      selectedImages = [...selectedImages, image];
-      notifyListeners();
-    }
+
+    selectedImages = [...selectedImages, image];
+    notifyListeners();
   }
 
   void removeImageAt(int index) {
@@ -244,21 +241,40 @@ class CreateListingViewModel extends ChangeNotifier {
     return valid;
   }
 
-  // Submit 
+  // Submit
 
   Future<bool> submitListing() async {
-    if (isSubmitting) return false;
+    print('SUBMIT LISTING PRESSED');
+
+    if (isSubmitting) {
+      print('STOP: already submitting');
+      return false;
+    }
 
     submitErrorMessage = null;
     submitSuccess = false;
 
-    if (!await _connectivityService.isOnline) {
+    final online = await _connectivityService.isOnline;
+    print('ONLINE: $online');
+
+    if (!online) {
       submitErrorMessage = 'Sin conexión a internet';
       notifyListeners();
       return false;
     }
 
-    if (!_validate()) {
+    final valid = _validate();
+
+    print('VALID: $valid');
+    print('currentUser: ${currentUser?.id}');
+    print('selectedCategory: ${selectedCategory?.id}');
+    print('title: "$title" / error: $titleError');
+    print('price: $price / error: $priceError');
+    print('description: "$description" / error: $descriptionError');
+    print('location: "$location" / error: $locationError');
+    print('condition: "$selectedCondition"');
+
+    if (!valid) {
       notifyListeners();
       return false;
     }
@@ -278,11 +294,17 @@ class CreateListingViewModel extends ChangeNotifier {
         location: location!,
       );
 
+      print('REQUEST BODY: ${request.toJson()}');
+
       await _listingRepository.createListing(request);
+
+      print('LISTING CREATED OK');
+
       submitSuccess = true;
       _resetForm();
       return true;
     } catch (error) {
+      print('CREATE LISTING ERROR: $error');
       submitErrorMessage = 'No se pudo publicar el listing. Intenta de nuevo.';
       return false;
     } finally {
@@ -298,7 +320,7 @@ class CreateListingViewModel extends ChangeNotifier {
     location = null;
     locationLat = null;
     locationLng = null;
-    selectedCondition = 'Like New';
+    selectedCondition = 'used';
     selectedImages = [];
     if (categories.isNotEmpty) selectedCategory = categories.first;
     titleError = null;
@@ -307,5 +329,36 @@ class CreateListingViewModel extends ChangeNotifier {
     locationError = null;
     categoryError = null;
     submitErrorMessage = null;
+  }
+
+  bool get canSubmit {
+    return !isSubmitting &&
+        currentUser != null &&
+        selectedCategory != null &&
+        title.trim().length >= 5 &&
+        price > 0 &&
+        description.trim().length >= 10 &&
+        location != null &&
+        location!.trim().isNotEmpty;
+  }
+
+  void debugCanSubmit() {
+    print('--- CAN SUBMIT DEBUG ---');
+    print('isSubmitting: $isSubmitting');
+    print('currentUser != null: ${currentUser != null} / ${currentUser?.id}');
+    print(
+      'selectedCategory != null: ${selectedCategory != null} / ${selectedCategory?.id}',
+    );
+    print(
+      'title valid: ${title.trim().length >= 5} / "$title" / len: ${title.trim().length}',
+    );
+    print('price valid: ${price > 0} / $price');
+    print(
+      'description valid: ${description.trim().length >= 10} / "$description" / len: ${description.trim().length}',
+    );
+    print(
+      'location valid: ${location != null && location!.trim().isNotEmpty} / "$location"',
+    );
+    print('canSubmit: $canSubmit');
   }
 }

@@ -11,7 +11,6 @@ class ListingImagePickerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<CreateListingViewModel>();
     final images = viewModel.selectedImages;
-    final canAddMore = images.length < viewModel.maxImages;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +27,7 @@ class ListingImagePickerSection extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              '${images.length} / ${viewModel.maxImages} photos',
+              '${images.length} photos',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -42,21 +41,20 @@ class ListingImagePickerSection extends StatelessWidget {
           height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: images.length + (canAddMore ? 1 : 0),
+            itemCount: images.length + 1, // siempre hay botón de agregar
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
-              if (canAddMore && index == 0) {
+              if (index == 0) {
                 return _AddPhotoCard(
                   onTap: () => _showImageSourceSheet(context, viewModel),
                 );
               }
 
-              final imageIndex = canAddMore ? index - 1 : index;
-              final image = images[imageIndex];
+              final image = images[index - 1];
 
               return _PhotoPreviewCard(
                 imagePath: image.path,
-                onRemove: () => viewModel.removeImageAt(imageIndex),
+                onRemove: () => viewModel.removeImageAt(index - 1),
               );
             },
           ),
