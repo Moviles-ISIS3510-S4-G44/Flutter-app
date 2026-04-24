@@ -85,6 +85,14 @@ class MyApp extends StatelessWidget {
 
         Provider<CategoryApiService>(create: (_) => CategoryApiService()),
 
+        Provider<LocationService>(create: (_) => LocationService()),
+
+        Provider<LocationRepository>(
+          create: (context) => LocationRepository(
+            locationService: context.read<LocationService>(),
+          ),
+        ),
+
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
             connectivityService: context.read<ConnectivityService>(),
@@ -103,6 +111,7 @@ class MyApp extends StatelessWidget {
             interactionRepository: context.read<InteractionRepository>(),
             locationRepository: context.read<LocationRepository>(),
             categoryApiService: context.read<CategoryApiService>(),
+            locationRepository: context.read<LocationRepository>(),
           ),
         ),
 
