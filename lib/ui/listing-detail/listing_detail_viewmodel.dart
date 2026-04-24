@@ -3,6 +3,7 @@ import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart'
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
 
@@ -11,6 +12,7 @@ class ListingDetailViewModel extends ChangeNotifier {
   final InteractionRepository _interactionRepository;
   final ConnectivityService _connectivityService;
   final AuthRepository _authRepository;
+  final LocationRepository _locationRepository;
 
   ListingDetail? listing;
   bool isLoading = false;
@@ -19,7 +21,8 @@ class ListingDetailViewModel extends ChangeNotifier {
   AppUser? seller;
   bool isLoadingSeller = false;
 
-  // Guardamos el listingId para poder hacer retry
+  double? distanceKm;
+
   String? _currentListingId;
 
   ListingDetailViewModel({
@@ -27,10 +30,12 @@ class ListingDetailViewModel extends ChangeNotifier {
     required InteractionRepository interactionRepository,
     required ConnectivityService connectivityService,
     required AuthRepository authRepository,
+    required LocationRepository locationRepository,
   })  : _listingRepository = listingRepository,
         _interactionRepository = interactionRepository,
         _connectivityService = connectivityService,
-        _authRepository = authRepository;
+        _authRepository = authRepository,
+        _locationRepository = locationRepository;
 
   Future<void> loadListing(String listingId) async {
     _currentListingId = listingId;
@@ -44,6 +49,7 @@ class ListingDetailViewModel extends ChangeNotifier {
     isLoading = true;
     errorMessage = null;
     seller = null;
+    distanceKm = null;
     notifyListeners();
 
     try {
@@ -52,10 +58,10 @@ class ListingDetailViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
 
-      // Cargar vendedor e interacción en paralelo, ambos fallan silenciosamente
       await Future.wait([
         _loadSeller(result.sellerId),
         _registerInteraction(listingId),
+        _loadDistance(result.location),
       ]);
     } catch (e) {
       errorMessage = 'No se pudo cargar el detalle del listing';
@@ -64,7 +70,6 @@ class ListingDetailViewModel extends ChangeNotifier {
     }
   }
 
-  /// Reintenta la carga usando el último listingId conocido.
   Future<void> retry() async {
     if (_currentListingId == null) return;
     await loadListing(_currentListingId!);
@@ -73,7 +78,6 @@ class ListingDetailViewModel extends ChangeNotifier {
   Future<void> _loadSeller(String sellerId) async {
     isLoadingSeller = true;
     notifyListeners();
-
     try {
       seller = await _authRepository.getUserById(sellerId);
     } catch (_) {
@@ -81,6 +85,22 @@ class ListingDetailViewModel extends ChangeNotifier {
     } finally {
       isLoadingSeller = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _loadDistance(String? location) async {
+    try {
+      if (location == null || location.isEmpty) return;
+      final parts = location.split(',');
+      if (parts.length != 2) return;
+      final lat = double.tryParse(parts[0].trim());
+      final lng = double.tryParse(parts[1].trim());
+      if (lat == null || lng == null) return;
+
+      distanceKm = await _locationRepository.getDistanceTo(lat, lng);
+      notifyListeners();
+    } catch (_) {
+      distanceKm = null;
     }
   }
 
