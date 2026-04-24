@@ -16,20 +16,20 @@ class HomeView extends StatelessWidget {
 
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
-    case 0:
-      context.go('/Home');
-      break;
-    case 1:
-      context.go('/Sell');
-      break;
-    case 2:
-      break; // carrito
-    case 3:
-      break; // messages
-    case 4:
-      context.go('/profile');
-      break;
-  }
+      case 0:
+        context.go('/Home');
+        break;
+      case 1:
+        context.go('/Sell');
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      case 4:
+        context.go('/profile');
+        break;
+    }
   }
 
   @override
@@ -59,15 +59,55 @@ class HomeView extends StatelessWidget {
                 ),
               ),
             ),
-            const Expanded(
-              child: _HomeBody(),
-            ),
+            const Expanded(child: _HomeBody()),
           ],
         ),
         bottomNavigationBar: AppBottomNavBar(
           selectedIndex: 0,
           onTap: (index) => _onNavTap(context, index),
         ),
+      ),
+    );
+  }
+}
+
+// Cache banner 
+
+class _CacheBanner extends StatelessWidget {
+  final DateTime? cachedAt;
+
+  const _CacheBanner({this.cachedAt});
+
+  String _formatTime(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final timeLabel =
+        cachedAt != null ? 'desde las ${_formatTime(cachedAt!)}' : '';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: const Color(0xFFFFF8C5),
+      child: Row(
+        children: [
+          const Icon(Icons.history_rounded, size: 15, color: Color(0xFF7A6000)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Contenido en caché $timeLabel  •  Desliza para actualizar',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF7A6000),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -104,11 +144,8 @@ class _HomeBody extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.wifi_off_rounded,
-                        size: 56,
-                        color: Colors.grey.shade400,
-                      ),
+                      Icon(Icons.wifi_off_rounded,
+                          size: 56, color: Colors.grey.shade400),
                       const SizedBox(height: 16),
                       Text(
                         'No se pudieron cargar los listings',
@@ -142,56 +179,62 @@ class _HomeBody extends StatelessWidget {
 
     return Container(
       color: const Color(0xFFF5F5F5),
-      child: RefreshIndicator(
-        onRefresh: viewModel.loadListings,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isSearching) ...[
-                TopInteractionsSection(
-                  listings: viewModel.topInteractionListings,
+      child: Column(
+        children: [
+          // Banner de caché — solo cuando los datos vienen del almacenamiento local
+          if (viewModel.isShowingCachedData)
+            _CacheBanner(cachedAt: viewModel.cachedAt),
+
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: viewModel.loadListings,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isSearching) ...[
+                      TopInteractionsSection(
+                        listings: viewModel.topInteractionListings,
+                        distances: viewModel.distances,
+                      ),
+                      if (viewModel.topInteractionListings.isNotEmpty)
+                        const SizedBox(height: 16),
+                      FeaturedSection(
+                        listings: viewModel.featuredListings,
+                        distances: viewModel.distances,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    if (isSearching && viewModel.filteredListings.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 36),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.search_off_rounded,
+                                  size: 48, color: Colors.grey.shade400),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Sin resultados para\n"${viewModel.searchQuery}"',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      RecentListingsSection(
+                        listings: viewModel.filteredListings,
+                        distances: viewModel.distances,
+                      ),
+                  ],
                 ),
-                if (viewModel.topInteractionListings.isNotEmpty)
-                  const SizedBox(height: 16),
-                FeaturedSection(
-                listings: viewModel.featuredListings,
-                distances: viewModel.distances,
               ),
-                const SizedBox(height: 16),
-              ],
-              if (isSearching && viewModel.filteredListings.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 36),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Sin resultados para\n"${viewModel.searchQuery}"',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                RecentListingsSection(
-                  
-                listings: viewModel.filteredListings,
-                distances: viewModel.distances,
-              ,
-                ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
