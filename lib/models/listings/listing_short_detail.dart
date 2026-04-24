@@ -3,7 +3,6 @@ class ListingShortDetail {
   final String title;
   final String price;
   final String description;
-  final String status;
   final String sellerName;
   final String image;
 
@@ -12,7 +11,6 @@ class ListingShortDetail {
     required this.title,
     required this.price,
     required this.description,
-    required this.status,
     required this.sellerName,
     required this.image,
   });

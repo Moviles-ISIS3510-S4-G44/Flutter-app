@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
+import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
-import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
@@ -13,33 +14,27 @@ class CreateListingViewModel extends ChangeNotifier {
   final ListingRepository _listingRepository;
   final AuthRepository _authRepository;
   final CategoryRepository _categoryRepository;
+  final ImageUploadRepository _imageUploadRepository;
 
-  // Submit state
   bool isSubmitting = false;
   bool submitSuccess = false;
   String? submitErrorMessage;
 
-  // User state
   AppUser? currentUser;
   bool isLoadingUser = false;
   String? userErrorMessage;
 
-  // Category state
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
   List<Category> categories = [];
   Category? selectedCategory;
 
-  // Condition
-  final List<String> conditions = ['New', 'Like New', 'Used'];
-  String selectedCondition = 'Like New';
+  final List<String> conditions = ['new', 'used', 'refurbished'];
+  String selectedCondition = 'used';
 
-  // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
-  final int maxImages = 5;
 
-  // Form fields
   String title = '';
   int price = 0;
   String description = '';
@@ -47,7 +42,6 @@ class CreateListingViewModel extends ChangeNotifier {
   double? locationLat;
   double? locationLng;
 
-  // Field-level validation errors
   String? titleError;
   String? priceError;
   String? descriptionError;
@@ -59,10 +53,12 @@ class CreateListingViewModel extends ChangeNotifier {
     required CategoryRepository categoryRepository,
     required ListingRepository listingRepository,
     required AuthRepository authRepository,
-  })  : _connectivityService = connectivityService,
-        _categoryRepository = categoryRepository,
-        _listingRepository = listingRepository,
-        _authRepository = authRepository {
+    required ImageUploadRepository imageUploadRepository,
+  }) : _connectivityService = connectivityService,
+       _categoryRepository = categoryRepository,
+       _listingRepository = listingRepository,
+       _authRepository = authRepository,
+       _imageUploadRepository = imageUploadRepository {
     _initialize();
   }
 
@@ -73,34 +69,22 @@ class CreateListingViewModel extends ChangeNotifier {
     ]);
   }
 
-  // Field updates
-
   void updateTitle(String value) {
     title = value;
-    if (titleError != null) {
-      titleError = null;
-      notifyListeners();
-    } else {
-      notifyListeners();
-    }
+    if (titleError != null) titleError = null;
+    notifyListeners();
   }
 
   void updatePrice(String value) {
     price = int.tryParse(value) ?? 0;
-    if (priceError != null) {
-      priceError = null;
-    }
+    if (priceError != null) priceError = null;
     notifyListeners();
   }
 
   void updateDescription(String value) {
     description = value;
-    if (descriptionError != null) {
-      descriptionError = null;
-      notifyListeners();
-    } else {
-      notifyListeners();
-    }
+    if (descriptionError != null) descriptionError = null;
+    notifyListeners();
   }
 
   void selectCondition(String condition) {
@@ -118,11 +102,10 @@ class CreateListingViewModel extends ChangeNotifier {
     locationLat = latitude;
     locationLng = longitude;
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
+
     if (locationError != null) locationError = null;
     notifyListeners();
   }
-
-  // User / categories loading 
 
   Future<void> loadCurrentUser() async {
     isLoadingUser = true;
@@ -133,7 +116,8 @@ class CreateListingViewModel extends ChangeNotifier {
       currentUser = await _authRepository.getMyProfile();
     } catch (error) {
       currentUser = null;
-      userErrorMessage = 'No se pudo verificar la sesión. Inicia sesión de nuevo.';
+      userErrorMessage =
+          'No se pudo verificar la sesión. Inicia sesión de nuevo.';
     } finally {
       isLoadingUser = false;
       notifyListeners();
@@ -153,7 +137,9 @@ class CreateListingViewModel extends ChangeNotifier {
 
     try {
       categories = await _categoryRepository.getCategories();
-      if (categories.isNotEmpty) selectedCategory = categories.first;
+      if (categories.isNotEmpty) {
+        selectedCategory = categories.first;
+      }
     } catch (error) {
       categoriesErrorMessage = 'No se pudieron cargar las categorías';
       categories = [];
@@ -164,35 +150,32 @@ class CreateListingViewModel extends ChangeNotifier {
     }
   }
 
-  // Image picking 
-
   Future<void> pickImageFromGallery() async {
-    if (selectedImages.length >= maxImages) return;
-    final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-    if (selectedImages.length < maxImages) {
-      selectedImages = [...selectedImages, image];
-      notifyListeners();
-    }
+    final List<XFile> images = await _imagePicker.pickMultiImage();
+
+    if (images.isEmpty) return;
+
+    selectedImages = [...selectedImages, ...images];
+    notifyListeners();
   }
 
   Future<void> pickImageFromCamera() async {
-    if (selectedImages.length >= maxImages) return;
-    final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera);
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+
     if (image == null) return;
-    if (selectedImages.length < maxImages) {
-      selectedImages = [...selectedImages, image];
-      notifyListeners();
-    }
+
+    selectedImages = [...selectedImages, image];
+    notifyListeners();
   }
 
   void removeImageAt(int index) {
     if (index < 0 || index >= selectedImages.length) return;
+
     selectedImages = List<XFile>.from(selectedImages)..removeAt(index);
     notifyListeners();
   }
-
-  // Validation
 
   bool _validate() {
     titleError = null;
@@ -200,6 +183,7 @@ class CreateListingViewModel extends ChangeNotifier {
     descriptionError = null;
     locationError = null;
     categoryError = null;
+    submitErrorMessage = null;
 
     bool valid = true;
 
@@ -244,21 +228,23 @@ class CreateListingViewModel extends ChangeNotifier {
     return valid;
   }
 
-  // Submit 
-
   Future<bool> submitListing() async {
     if (isSubmitting) return false;
 
     submitErrorMessage = null;
     submitSuccess = false;
 
-    if (!await _connectivityService.isOnline) {
+    final online = await _connectivityService.isOnline;
+
+    if (!online) {
       submitErrorMessage = 'Sin conexión a internet';
       notifyListeners();
       return false;
     }
 
-    if (!_validate()) {
+    final valid = _validate();
+
+    if (!valid) {
       notifyListeners();
       return false;
     }
@@ -267,6 +253,10 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final imageUrls = await _imageUploadRepository.uploadListingImages(
+        selectedImages,
+      );
+
       final request = CreateListingRequest(
         sellerId: currentUser!.id,
         categoryId: selectedCategory!.id,
@@ -274,16 +264,17 @@ class CreateListingViewModel extends ChangeNotifier {
         description: description.trim(),
         price: price,
         condition: selectedCondition,
-        images: const [],
-        status: 'active',
+        images: imageUrls,
         location: location!,
       );
 
       await _listingRepository.createListing(request);
+
       submitSuccess = true;
       _resetForm();
       return true;
     } catch (error) {
+      print('CREATE LISTING ERROR: $error');
       submitErrorMessage = 'No se pudo publicar el listing. Intenta de nuevo.';
       return false;
     } finally {
@@ -299,14 +290,29 @@ class CreateListingViewModel extends ChangeNotifier {
     location = null;
     locationLat = null;
     locationLng = null;
-    selectedCondition = 'Like New';
+    selectedCondition = 'used';
     selectedImages = [];
-    if (categories.isNotEmpty) selectedCategory = categories.first;
+
+    if (categories.isNotEmpty) {
+      selectedCategory = categories.first;
+    }
+
     titleError = null;
     priceError = null;
     descriptionError = null;
     locationError = null;
     categoryError = null;
     submitErrorMessage = null;
+  }
+
+  bool get canSubmit {
+    return !isSubmitting &&
+        currentUser != null &&
+        selectedCategory != null &&
+        title.trim().length >= 5 &&
+        price > 0 &&
+        description.trim().length >= 10 &&
+        location != null &&
+        location!.trim().isNotEmpty;
   }
 }

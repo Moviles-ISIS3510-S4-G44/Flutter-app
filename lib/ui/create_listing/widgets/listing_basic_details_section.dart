@@ -15,7 +15,7 @@ class ListingBasicDetailsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTextField(
-          hintText: 'Título (ej. Libro de Química Orgánica)',
+          hintText: 'Title',
           onChanged: viewModel.updateTitle,
           textCapitalization: TextCapitalization.sentences,
           maxLength: 80,
@@ -23,7 +23,7 @@ class ListingBasicDetailsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _SectionTextField(
-          hintText: '\$ Precio',
+          hintText: '\$ Price',
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           onChanged: viewModel.updatePrice,
