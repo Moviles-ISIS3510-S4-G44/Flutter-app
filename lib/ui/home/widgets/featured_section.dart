@@ -24,37 +24,38 @@ class FeaturedSection extends StatelessWidget {
         children: [
           const Text(
             'Featured',
-            style:  TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
               color: Color(0xFF1F1F1F),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 240,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: listings.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final listing = listings[index];
-              return SizedBox(
-                width: 170,
-                child: ListingCard(
-                  listing: listing,
-                  showFeaturedBadge: true,
-                  distanceKm: distances[listing.id],
-                  onTap: () => context.push('/listing-map/${listing.id}'),
-                ),
-              );
-            },
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 240,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: listings.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final listing = listings[index];
+
+                return SizedBox(
+                  width: 170,
+                  child: ListingCard(
+                    listing: listing,
+                    showFeaturedBadge: true,
+                    distanceKm: distances[listing.id],
+                    onTap: () => context.push('/listing-map/${listing.id}'),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
