@@ -275,7 +275,6 @@ class CreateListingViewModel extends ChangeNotifier {
         price: price,
         condition: selectedCondition,
         images: const [],
-        status: 'active',
         location: location!,
       );
 

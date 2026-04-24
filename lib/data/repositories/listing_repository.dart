@@ -42,7 +42,6 @@ class ListingRepository {
       price: dto.price,
       condition: dto.condition,
       images: dto.images,
-      status: dto.status,
       location: dto.location,
     );
   }

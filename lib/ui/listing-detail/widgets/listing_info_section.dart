@@ -26,8 +26,6 @@ class ListingInfoSection extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            _StatusBadge(status: listing.status),
           ],
         ),
         const SizedBox(height: 12),
