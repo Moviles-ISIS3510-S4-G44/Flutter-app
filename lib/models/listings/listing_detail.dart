@@ -7,7 +7,6 @@ class ListingDetail {
   final int price;
   final String condition;
   final List<String> images;
-  final String status;
   final String location;
 
   const ListingDetail({
@@ -19,7 +18,6 @@ class ListingDetail {
     required this.price,
     required this.condition,
     required this.images,
-    required this.status,
     required this.location,
   });
 }
