@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marketplace_flutter_application/data/dtos/listings/create_listing_request.dart';
+import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
-import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/categories/category.dart';
 
@@ -13,32 +14,27 @@ class CreateListingViewModel extends ChangeNotifier {
   final ListingRepository _listingRepository;
   final AuthRepository _authRepository;
   final CategoryRepository _categoryRepository;
+  final ImageUploadRepository _imageUploadRepository;
 
-  // Submit state
   bool isSubmitting = false;
   bool submitSuccess = false;
   String? submitErrorMessage;
 
-  // User state
   AppUser? currentUser;
   bool isLoadingUser = false;
   String? userErrorMessage;
 
-  // Category state
   bool isLoadingCategories = false;
   String? categoriesErrorMessage;
   List<Category> categories = [];
   Category? selectedCategory;
 
-  // Condition
   final List<String> conditions = ['new', 'used', 'refurbished'];
   String selectedCondition = 'used';
 
-  // Images
   final ImagePicker _imagePicker = ImagePicker();
   List<XFile> selectedImages = [];
 
-  // Form fields
   String title = '';
   int price = 0;
   String description = '';
@@ -46,7 +42,6 @@ class CreateListingViewModel extends ChangeNotifier {
   double? locationLat;
   double? locationLng;
 
-  // Field-level validation errors
   String? titleError;
   String? priceError;
   String? descriptionError;
@@ -58,45 +53,38 @@ class CreateListingViewModel extends ChangeNotifier {
     required CategoryRepository categoryRepository,
     required ListingRepository listingRepository,
     required AuthRepository authRepository,
+    required ImageUploadRepository imageUploadRepository,
   }) : _connectivityService = connectivityService,
        _categoryRepository = categoryRepository,
        _listingRepository = listingRepository,
-       _authRepository = authRepository {
+       _authRepository = authRepository,
+       _imageUploadRepository = imageUploadRepository {
     _initialize();
   }
 
   Future<void> _initialize() async {
-    await Future.wait([loadCategories(), loadCurrentUser()]);
+    await Future.wait([
+      loadCategories(),
+      loadCurrentUser(),
+    ]);
   }
-
-  // Field updates
 
   void updateTitle(String value) {
     title = value;
-    if (titleError != null) {
-      titleError = null;
-      notifyListeners();
-    } else {
-      notifyListeners();
-    }
+    if (titleError != null) titleError = null;
+    notifyListeners();
   }
 
   void updatePrice(String value) {
     price = int.tryParse(value) ?? 0;
-    if (priceError != null) {
-      priceError = null;
-    }
+    if (priceError != null) priceError = null;
     notifyListeners();
   }
 
   void updateDescription(String value) {
     description = value;
-    if (descriptionError != null) {
-      descriptionError = null;
-      notifyListeners();
-    } else {
-      notifyListeners();
-    }
+    if (descriptionError != null) descriptionError = null;
+    notifyListeners();
   }
 
   void selectCondition(String condition) {
@@ -114,11 +102,10 @@ class CreateListingViewModel extends ChangeNotifier {
     locationLat = latitude;
     locationLng = longitude;
     location = '${latitude.toStringAsFixed(6)},${longitude.toStringAsFixed(6)}';
+
     if (locationError != null) locationError = null;
     notifyListeners();
   }
-
-  // User / categories loading
 
   Future<void> loadCurrentUser() async {
     isLoadingUser = true;
@@ -150,7 +137,9 @@ class CreateListingViewModel extends ChangeNotifier {
 
     try {
       categories = await _categoryRepository.getCategories();
-      if (categories.isNotEmpty) selectedCategory = categories.first;
+      if (categories.isNotEmpty) {
+        selectedCategory = categories.first;
+      }
     } catch (error) {
       categoriesErrorMessage = 'No se pudieron cargar las categorías';
       categories = [];
@@ -160,8 +149,6 @@ class CreateListingViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // Image picking
 
   Future<void> pickImageFromGallery() async {
     final List<XFile> images = await _imagePicker.pickMultiImage();
@@ -185,11 +172,10 @@ class CreateListingViewModel extends ChangeNotifier {
 
   void removeImageAt(int index) {
     if (index < 0 || index >= selectedImages.length) return;
+
     selectedImages = List<XFile>.from(selectedImages)..removeAt(index);
     notifyListeners();
   }
-
-  // Validation
 
   bool _validate() {
     titleError = null;
@@ -197,6 +183,7 @@ class CreateListingViewModel extends ChangeNotifier {
     descriptionError = null;
     locationError = null;
     categoryError = null;
+    submitErrorMessage = null;
 
     bool valid = true;
 
@@ -241,21 +228,13 @@ class CreateListingViewModel extends ChangeNotifier {
     return valid;
   }
 
-  // Submit
-
   Future<bool> submitListing() async {
-    print('SUBMIT LISTING PRESSED');
-
-    if (isSubmitting) {
-      print('STOP: already submitting');
-      return false;
-    }
+    if (isSubmitting) return false;
 
     submitErrorMessage = null;
     submitSuccess = false;
 
     final online = await _connectivityService.isOnline;
-    print('ONLINE: $online');
 
     if (!online) {
       submitErrorMessage = 'Sin conexión a internet';
@@ -264,15 +243,6 @@ class CreateListingViewModel extends ChangeNotifier {
     }
 
     final valid = _validate();
-
-    print('VALID: $valid');
-    print('currentUser: ${currentUser?.id}');
-    print('selectedCategory: ${selectedCategory?.id}');
-    print('title: "$title" / error: $titleError');
-    print('price: $price / error: $priceError');
-    print('description: "$description" / error: $descriptionError');
-    print('location: "$location" / error: $locationError');
-    print('condition: "$selectedCondition"');
 
     if (!valid) {
       notifyListeners();
@@ -283,6 +253,10 @@ class CreateListingViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final imageUrls = await _imageUploadRepository.uploadListingImages(
+        selectedImages,
+      );
+
       final request = CreateListingRequest(
         sellerId: currentUser!.id,
         categoryId: selectedCategory!.id,
@@ -290,15 +264,11 @@ class CreateListingViewModel extends ChangeNotifier {
         description: description.trim(),
         price: price,
         condition: selectedCondition,
-        images: const [],
+        images: imageUrls,
         location: location!,
       );
 
-      print('REQUEST BODY: ${request.toJson()}');
-
       await _listingRepository.createListing(request);
-
-      print('LISTING CREATED OK');
 
       submitSuccess = true;
       _resetForm();
@@ -322,7 +292,11 @@ class CreateListingViewModel extends ChangeNotifier {
     locationLng = null;
     selectedCondition = 'used';
     selectedImages = [];
-    if (categories.isNotEmpty) selectedCategory = categories.first;
+
+    if (categories.isNotEmpty) {
+      selectedCategory = categories.first;
+    }
+
     titleError = null;
     priceError = null;
     descriptionError = null;
@@ -340,25 +314,5 @@ class CreateListingViewModel extends ChangeNotifier {
         description.trim().length >= 10 &&
         location != null &&
         location!.trim().isNotEmpty;
-  }
-
-  void debugCanSubmit() {
-    print('--- CAN SUBMIT DEBUG ---');
-    print('isSubmitting: $isSubmitting');
-    print('currentUser != null: ${currentUser != null} / ${currentUser?.id}');
-    print(
-      'selectedCategory != null: ${selectedCategory != null} / ${selectedCategory?.id}',
-    );
-    print(
-      'title valid: ${title.trim().length >= 5} / "$title" / len: ${title.trim().length}',
-    );
-    print('price valid: ${price > 0} / $price');
-    print(
-      'description valid: ${description.trim().length >= 10} / "$description" / len: ${description.trim().length}',
-    );
-    print(
-      'location valid: ${location != null && location!.trim().isNotEmpty} / "$location"',
-    );
-    print('canSubmit: $canSubmit');
   }
 }
