@@ -50,7 +50,10 @@ class HomeViewModel extends ChangeNotifier {
   List<ListingSummary> filteredListings = [];
   List<ListingSummary> topInteractionListings = [];
   List<ListingSummary> recentlyViewed = [];
+  List<ListingSummary> nearYouListings = [];
   Map<String, double> distances = {};
+
+  static const double _nearYouRadiusKm = 2.0;
 
   bool isShowingCachedData = false;
   DateTime? cachedAt;
@@ -58,7 +61,7 @@ class HomeViewModel extends ChangeNotifier {
   List<ListingSummary> get displayedListings =>
       searchQuery.isEmpty ? recentListings : filteredListings;
 
-  // Connectivity listener
+  // Connectivity listener 
 
   void _subscribeToConnectivity() {
     _connectivitySubscription =
@@ -90,7 +93,7 @@ class HomeViewModel extends ChangeNotifier {
         ...categoriesResponse.map((c) => c.name),
       ];
     } catch (_) {
-      // Categorías fallan silenciosamente — mantener las anteriores
+      // Categorías fallan silenciosamente
     }
 
     try {
@@ -109,6 +112,7 @@ class HomeViewModel extends ChangeNotifier {
       filteredListings = [];
       topInteractionListings = [];
       recentlyViewed = [];
+      nearYouListings = [];
       distances = {};
       isShowingCachedData = false;
       cachedAt = null;
@@ -172,13 +176,23 @@ class HomeViewModel extends ChangeNotifier {
         userPosition: userPosition,
         listingCoords: coords,
       );
+
+      // Filtra listings dentro del radio — ordenados de más cercano a más lejano
+      nearYouListings = recentListings
+          .where((l) {
+            final d = distances[l.id];
+            return d != null && d <= _nearYouRadiusKm;
+          })
+          .toList()
+        ..sort((a, b) => distances[a.id]!.compareTo(distances[b.id]!));
+
       notifyListeners();
     } catch (e) {
       debugPrint('_loadDistances error: $e');
     }
   }
 
-  // Filtros
+  // Filtros 
 
   void updateSearchQuery(String query) {
     searchQuery = query.trim();
