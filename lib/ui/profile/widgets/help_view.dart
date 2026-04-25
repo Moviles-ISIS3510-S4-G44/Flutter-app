@@ -56,7 +56,7 @@ class HelpView extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Help',
+          'Ayuda y soporte',
           style: TextStyle(
             color: textPrimary,
             fontWeight: FontWeight.w700,
@@ -89,7 +89,7 @@ class HelpView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            'Frequently Asked Questions',
+                            'Preguntas Frecuentes',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -98,7 +98,7 @@ class HelpView extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Find quick answers to common questions.',
+                            'Encuentra respuestas rápidas a preguntas comunes.',
                             style: TextStyle(
                                 fontSize: 13, color: textSecondary),
                           ),
@@ -145,7 +145,7 @@ class HelpView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Still need help?',
+                      '¿Aún necesitas ayuda?',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -154,7 +154,7 @@ class HelpView extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Write to our support team and we\'ll get back to you as soon as possible.',
+                      'Escribe a soporte y te responderemos lo antes posible.',
                       style:
                           TextStyle(fontSize: 13, color: textSecondary),
                     ),
@@ -213,7 +213,7 @@ class HelpView extends StatelessWidget {
   }
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+//  Data 
 
 class _FaqItem {
   final String question;
@@ -221,7 +221,7 @@ class _FaqItem {
   const _FaqItem({required this.question, required this.answer});
 }
 
-// ── FAQ tile con expansión ────────────────────────────────────────────────────
+//  FAQ tile con expansión 
 
 class _FaqTile extends StatefulWidget {
   final _FaqItem item;
