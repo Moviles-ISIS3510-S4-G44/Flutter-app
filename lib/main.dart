@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/data/repositories/favorite_listings_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
+import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/my_listings/my_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -61,10 +64,12 @@ class MyApp extends StatelessWidget {
             tokenStorage: context.read<TokenStorage>(),
           ),
         ),
+
         ChangeNotifierProvider<ProfileViewModel>(
           create: (context) =>
               ProfileViewModel(repository: context.read<AuthRepository>()),
         ),
+
         Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
@@ -89,6 +94,21 @@ class MyApp extends StatelessWidget {
         Provider<LocationRepository>(
           create: (context) => LocationRepository(
             locationService: context.read<LocationService>(),
+          ),
+        ),
+
+        Provider<FavoritesRepository>(create: (_) => FavoritesRepository()),
+
+        ChangeNotifierProvider<FavoritesViewModel>(
+          create: (context) => FavoritesViewModel(
+            repository: context.read<FavoritesRepository>(),
+          )..loadFavorites(),
+        ),
+
+        ChangeNotifierProvider<MyListingsViewModel>(
+          create: (context) => MyListingsViewModel(
+            listingRepository: context.read<ListingRepository>(),
+            authRepository: context.read<AuthRepository>(),
           ),
         ),
 
