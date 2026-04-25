@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/models/chats/chat_conversation.dart';
+import 'package:marketplace_flutter_application/models/chats/chat_message.dart';
 
 class ChatService {
   final String baseUrl;
 
-  ChatService({required this.baseUrl});
+  ChatService({
+    required this.baseUrl,
+  });
 
   Future<List<ChatConversation>> getConversations({
     required String accessToken,
@@ -17,23 +20,17 @@ class ChatService {
       uri,
       headers: {
         'Authorization': 'Bearer $accessToken',
-        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
     );
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to load conversations. Status: ${response.statusCode}. Body: ${response.body}',
+        'Failed to load conversations. Status: ${response.statusCode}',
       );
     }
 
-    final decoded = jsonDecode(response.body);
-
-    if (decoded is! List) {
-      throw Exception(
-        'Expected a list of conversations but got: ${decoded.runtimeType}',
-      );
-    }
+    final decoded = jsonDecode(response.body) as List<dynamic>;
 
     return decoded
         .map((item) => ChatConversation.fromJson(item as Map<String, dynamic>))
@@ -52,17 +49,104 @@ class ChatService {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'listing_id': listingId}),
+      body: jsonEncode({
+        'listing_id': listingId,
+      }),
     );
 
-    if (response.statusCode != 200 && response.statusCode != 201) {
+    if (response.statusCode != 201 && response.statusCode != 200) {
       throw Exception(
-        'Failed to create conversation: ${response.statusCode} ${response.body}',
+        'Failed to create conversation. Status: ${response.statusCode}',
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    return ChatConversation.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 
-    return ChatConversation.fromJson(decoded);
+  Future<ChatConversation> getConversation({
+    required String accessToken,
+    required String conversationId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/chat/conversations/$conversationId');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load conversation. Status: ${response.statusCode}',
+      );
+    }
+
+    return ChatConversation.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<List<ChatMessage>> getMessages({
+    required String accessToken,
+    required String conversationId,
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/chat/conversations/$conversationId/messages',
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load messages. Status: ${response.statusCode}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body) as List<dynamic>;
+
+    return decoded
+        .map((item) => ChatMessage.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<ChatMessage> sendMessage({
+    required String accessToken,
+    required String conversationId,
+    required String body,
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/chat/conversations/$conversationId/messages',
+    );
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'body': body,
+      }),
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception(
+        'Failed to send message. Status: ${response.statusCode}',
+      );
+    }
+
+    return ChatMessage.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }
