@@ -14,10 +14,16 @@ class ListingSubmitSection extends StatelessWidget {
 
     final canPressSubmit = viewModel.canSubmit && connectivityModel.isOnline;
     print('BUTTON DEBUG');
-print('canSubmit: ${viewModel.canSubmit}');
-print('isOnline: ${connectivityModel.isOnline}');
-print('isSubmitting: ${viewModel.isSubmitting}');
-print('selectedImages: ${viewModel.selectedImages.length}');
+    print('canSubmit: ${viewModel.canSubmit}');
+    print('isOnline: ${connectivityModel.isOnline}');
+    print('isSubmitting: ${viewModel.isSubmitting}');
+    print('currentUser: ${viewModel.currentUser}');        // <-- agrega este
+    print('selectedCategory: ${viewModel.selectedCategory}'); // <-- y este
+    print('title.length: ${viewModel.title.trim().length}');
+    print('price: ${viewModel.price}');
+    print('description.length: ${viewModel.description.trim().length}');
+    print('location: ${viewModel.location}');
+    print('selectedImages: ${viewModel.selectedImages.length}');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
