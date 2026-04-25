@@ -14,10 +14,14 @@ class InteractionRepository {
   Future<void> registerInteraction({
     required String listingId,
   }) async {
-    final user = await _authRepository.getMyProfile();
+    final accessToken = await _authRepository.getAccessToken();
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('No access token found');
+    }
 
     await _interactionService.registerInteraction(
-      userId: user.id,
+      accessToken: accessToken,
       listingId: listingId,
     );
   }
