@@ -24,6 +24,7 @@ class CreateListingView extends StatelessWidget {
           context.go('/Sell');
           break;
         case 2:
+          context.go('/cart');
           break; // carrito
         case 3:
           context.go('/messages');
