@@ -66,16 +66,16 @@ class ListingDetailViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
 
+      _registerInteraction(listingId); // fire-and-forget, no bloquea
       await Future.wait([
         _loadSeller(result.sellerId),
-        _registerInteraction(listingId),
         _loadDistance(result.location),
         _checkFavorite(listingId),
       ]);
     } catch (e) {
-      errorMessage = 'No se pudo cargar el detalle del listing';
-      isLoading = false;
-      notifyListeners();
+    errorMessage = 'No se pudo cargar el detalle del listing';
+    isLoading = false;
+    notifyListeners();
     }
   }
 
@@ -144,9 +144,17 @@ class ListingDetailViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _registerInteraction(String listingId) async {
-    try {
-      await _interactionRepository.registerInteraction(listingId: listingId);
-    } catch (_) {}
-  }
+  void _registerInteraction(String listingId) {
+    _interactionRepository
+        .registerInteraction(listingId: listingId)
+        .then((_) {
+          debugPrint('Interaction registered for listing $listingId');
+        })
+        .catchError((error) {
+          debugPrint('Failed to register interaction: $error');
+        })
+        .whenComplete(() {
+          debugPrint('_registerInteraction complete');
+        });
+    }
 }
