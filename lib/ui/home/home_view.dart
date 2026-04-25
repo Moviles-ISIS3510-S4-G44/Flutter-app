@@ -25,7 +25,7 @@ class HomeView extends StatelessWidget {
         context.go('/Sell');
         break;
       case 2:
-        break;
+        context.go('/cart');
       case 3:
         break;
       case 4:
@@ -73,7 +73,7 @@ class HomeView extends StatelessWidget {
   }
 }
 
-// Cache banner 
+// Cache banner
 
 class _CacheBanner extends StatelessWidget {
   final DateTime? cachedAt;
@@ -208,7 +208,7 @@ class _HomeBody extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // ── Near You ────────────────────────────────────────
+                      // Near You 
                       if (viewModel.nearYouListings.isNotEmpty) ...[
                         NearYouSection(
                           listings: viewModel.nearYouListings,
@@ -217,7 +217,7 @@ class _HomeBody extends StatelessWidget {
                         const SizedBox(height: 16),
                       ],
 
-                      // ── Recently Viewed ──────────────────────────────────
+                      // Recently Viewed 
                       if (viewModel.recentlyViewed.isNotEmpty) ...[
                         RecentlyViewedSection(
                           listings: viewModel.recentlyViewed,
