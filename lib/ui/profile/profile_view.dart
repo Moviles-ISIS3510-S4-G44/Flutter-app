@@ -30,20 +30,20 @@ class _ProfileViewState extends State<ProfileView> {
 
   void _onBottomNavTap(int index) {
     switch (index) {
-    case 0:
-      context.go('/Home');
-      break;
-    case 1:
-      context.go('/Sell');
-      break;
-    case 2:
-      break; // carrito
-    case 3:
-      break; // messages
-    case 4:
-      context.go('/profile');
-      break;
-  }
+      case 0:
+        context.go('/Home');
+        break;
+      case 1:
+        context.go('/Sell');
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      case 4:
+        context.go('/profile');
+        break;
+    }
   }
 
   @override
@@ -72,6 +72,7 @@ class _ProfileViewState extends State<ProfileView> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Column(
                   children: [
+                    // ── Avatar card ────────────────────────────────────────
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -113,7 +114,10 @@ class _ProfileViewState extends State<ProfileView> {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
+
+                    //  Opciones 
                     _ProfileOptionTile(
                       icon: Icons.person_outline,
                       title: 'Personal information',
@@ -128,6 +132,16 @@ class _ProfileViewState extends State<ProfileView> {
                       onTap: () {},
                     ),
                     const SizedBox(height: 12),
+
+                    // Favorite listings
+                    _ProfileOptionTile(
+                      icon: Icons.star_outline_rounded,
+                      title: 'Favorite listings',
+                      subtitle: 'Products you have marked as favorites',
+                      onTap: () => context.push('/favorites'),
+                    ),
+                    const SizedBox(height: 12),
+
                     _ProfileOptionTile(
                       icon: Icons.settings_outlined,
                       title: 'Settings',
@@ -141,7 +155,10 @@ class _ProfileViewState extends State<ProfileView> {
                       subtitle: 'Support and FAQs',
                       onTap: () {},
                     ),
+
                     const SizedBox(height: 24),
+
+                    // Logout 
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -169,6 +186,7 @@ class _ProfileViewState extends State<ProfileView> {
                         ),
                       ),
                     ),
+
                     if (viewModel.errorMessage != null) ...[
                       const SizedBox(height: 12),
                       Text(

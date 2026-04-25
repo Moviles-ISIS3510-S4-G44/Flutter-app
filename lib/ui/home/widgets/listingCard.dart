@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:marketplace_flutter_application/data/domains/favorites/favorite_listings.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
+import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
 
 class ListingCard extends StatelessWidget {
   final ListingSummary listing;
@@ -19,27 +23,24 @@ class ListingCard extends StatelessWidget {
     final value = int.tryParse(price.toString()) ?? 0;
     final text = value.toString();
     final buffer = StringBuffer();
-
     for (int i = 0; i < text.length; i++) {
       final position = text.length - i;
       buffer.write(text[i]);
-      if (position > 1 && position % 3 == 1) {
-        buffer.write('.');
-      }
+      if (position > 1 && position % 3 == 1) buffer.write('.');
     }
-
     return buffer.toString();
   }
 
   String _formatDistance(double km) {
-    if (km < 1.0) {
-      return '${(km * 1000).round()} m';
-    }
+    if (km < 1.0) return '${(km * 1000).round()} m';
     return '${km.toStringAsFixed(1)} km';
   }
 
   @override
   Widget build(BuildContext context) {
+    final favVm = context.watch<FavoritesViewModel>();
+    final isFav = favVm.isFavorite(listing.id);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(4),
@@ -71,6 +72,43 @@ class ListingCard extends StatelessWidget {
                       },
                     ),
                   ),
+
+                  // Botón favorito 
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        favVm.toggle(
+                          FavoriteListing(
+                            id: listing.id,
+                            title: listing.title,
+                            price: listing.price,
+                            imageUrl: listing.imageUrl,
+                            category: listing.category,
+                            location: listing.location,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.92),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isFav ? Icons.star : Icons.star_border,
+                          size: 17,
+                          color: isFav
+                              ? const Color(0xFFFFD700)
+                              : const Color(0xFF9E9E9E),
+                        ),
+                      ),
+                    ),
+                  ),
+
                   if (showFeaturedBadge)
                     Positioned(
                       top: 8,
@@ -94,48 +132,45 @@ class ListingCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Chip de distancia — solo si está disponible
-                    if (distanceKm != null)
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.55),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                size: 11,
+
+                  if (distanceKm != null)
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.55),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.location_on,
+                                size: 11, color: Colors.white),
+                            const SizedBox(width: 3),
+                            Text(
+                              _formatDistance(distanceKm!),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
-                              const SizedBox(width: 3),
-                              Text(
-                                _formatDistance(distanceKm!),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
                 ],
               ),
             ),
             Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
