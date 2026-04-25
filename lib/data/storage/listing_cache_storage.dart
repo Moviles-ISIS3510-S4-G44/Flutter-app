@@ -24,17 +24,19 @@ class ListingCacheStorage {
     }
   }
 
-  /// Devuelve los listings cacheados o lista vacía si no hay nada.
+  static List<ListingSummary> _decodeListings(String raw) {
+    final decoded = jsonDecode(raw) as List<dynamic>;
+    return decoded
+        .map((item) => _summaryFromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<ListingSummary>> getListings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_keyListings);
       if (raw == null || raw.isEmpty) return [];
-
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded
-          .map((item) => _summaryFromJson(item as Map<String, dynamic>))
-          .toList();
+      return await compute(_decodeListings, raw);
     } catch (e) {
       debugPrint('ListingCacheStorage.getListings error: $e');
       return [];
@@ -65,7 +67,6 @@ class ListingCacheStorage {
   }
 
   // Serialización
-
   Map<String, dynamic> _summaryToJson(ListingSummary l) => {
         'id': l.id,
         'sellerId': l.sellerId,
@@ -76,7 +77,7 @@ class ListingCacheStorage {
         'location': l.location,
       };
 
-  ListingSummary _summaryFromJson(Map<String, dynamic> json) => ListingSummary(
+  static ListingSummary _summaryFromJson(Map<String, dynamic> json) => ListingSummary(
         id: json['id'] as String,
         sellerId: (json['sellerId'] as String?) ?? '',
         title: json['title'] as String,
