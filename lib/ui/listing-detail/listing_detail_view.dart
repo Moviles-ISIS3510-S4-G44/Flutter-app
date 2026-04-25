@@ -129,6 +129,13 @@ class _ListingDetailViewState extends State<ListingDetailView> {
             distanceKm: _viewModel.distanceKm,
           ),
           Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: _AddToCartButton(
+              listingId: listing.id,
+              listing: listing,
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Row(
               children: [

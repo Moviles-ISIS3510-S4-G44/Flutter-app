@@ -115,9 +115,10 @@ class CreateListingViewModel extends ChangeNotifier {
     try {
       currentUser = await _authRepository.getMyProfile();
     } catch (error) {
-      currentUser = null;
-      userErrorMessage =
-          'No se pudo verificar la sesión. Inicia sesión de nuevo.';
+      if (currentUser == null) {
+        userErrorMessage =
+            'No se pudo verificar la sesión. Inicia sesión de nuevo.';
+      }
     } finally {
       isLoadingUser = false;
       notifyListeners();
@@ -283,6 +284,12 @@ class CreateListingViewModel extends ChangeNotifier {
     }
   }
 
+  void resetForm() {
+    _resetForm();
+    notifyListeners();
+    loadCurrentUser(); // fire-and-forget: recarga el usuario post-login
+  }
+
   void _resetForm() {
     title = '';
     price = 0;
@@ -315,4 +322,6 @@ class CreateListingViewModel extends ChangeNotifier {
         location != null &&
         location!.trim().isNotEmpty;
   }
+
+  
 }
