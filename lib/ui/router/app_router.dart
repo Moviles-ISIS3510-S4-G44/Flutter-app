@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_view.dart';
+import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_view.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_view.dart';
 import 'package:marketplace_flutter_application/ui/map_listing/map_listing_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_view.dart';
@@ -45,6 +46,10 @@ class AppRouter {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileView(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesView(),
       ),
     ],
   );
