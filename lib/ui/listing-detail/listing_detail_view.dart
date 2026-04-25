@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:marketplace_flutter_application/data/repositories/chat_repository.dart';
 import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
@@ -17,10 +18,7 @@ import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listin
 class ListingDetailView extends StatefulWidget {
   final String listingId;
 
-  const ListingDetailView({
-    super.key,
-    required this.listingId,
-  });
+  const ListingDetailView({super.key, required this.listingId});
 
   @override
   State<ListingDetailView> createState() => _ListingDetailViewState();
@@ -88,9 +86,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
           body: Column(
             children: [
               if (!connectivityModel.isOnline) const ConnectivityView(),
-              Expanded(
-                child: _buildBody(context, connectivityModel.isOnline),
-              ),
+              Expanded(child: _buildBody(context, connectivityModel.isOnline)),
             ],
           ),
         );
@@ -148,16 +144,52 @@ class _ListingDetailViewState extends State<ListingDetailView> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: isOnline
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Contact Seller próximamente'),
-                              ),
-                            );
+                        ? () async {
+                            final authRepository = context
+                                .read<AuthRepository>();
+                            final chatRepository = context
+                                .read<ChatRepository>();
+
+                            final token = await authRepository.getAccessToken();
+
+                            if (!context.mounted) return;
+
+                            if (token == null || token.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'You must be logged in to contact the seller',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            try {
+                              final conversation = await chatRepository
+                                  .createConversation(
+                                    accessToken: token,
+                                    listingId: listing.id,
+                                  );
+
+                              if (!context.mounted) return;
+
+                              context.push('/messages/${conversation.id}');
+                            } catch (error) {
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Could not start conversation: $error',
+                                  ),
+                                ),
+                              );
+                            }
                           }
                         : null,
                     icon: const Icon(Icons.chat_bubble_outline),
-                    label: const Text('Contactar'),
+                    label: const Text('Contact'),
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
