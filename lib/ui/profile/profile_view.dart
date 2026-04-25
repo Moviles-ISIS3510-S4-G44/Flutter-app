@@ -72,7 +72,7 @@ class _ProfileViewState extends State<ProfileView> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Column(
                   children: [
-                    // ── Avatar card ────────────────────────────────────────
+                    // Avatar card 
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -117,43 +117,36 @@ class _ProfileViewState extends State<ProfileView> {
 
                     const SizedBox(height: 16),
 
-                    //  Opciones 
+                    // Opciones 
                     _ProfileOptionTile(
                       icon: Icons.person_outline,
-                      title: 'Personal information',
-                      subtitle: 'View your basic account details',
-                      onTap: () {},
+                      title: 'Información personal',
+                      subtitle: 'Mira tu información de perfil',
+                      onTap: () => context.push('/personal-information'),
                     ),
                     const SizedBox(height: 12),
                     _ProfileOptionTile(
                       icon: Icons.shopping_bag_outlined,
-                      title: 'My listings',
-                      subtitle: 'See the products you have published',
-                      onTap: () {},
+                      title: 'Mis anuncios',
+                      subtitle: 'Ver los productos que has publicado',
+                      onTap: () => context.push('/my-listings'),
                     ),
                     const SizedBox(height: 12),
 
-                    // Favorite listings
+                    // Favorite listings 
                     _ProfileOptionTile(
                       icon: Icons.star_outline_rounded,
-                      title: 'Favorite listings',
-                      subtitle: 'Products you have marked as favorites',
-                      onTap: () => context.push('/favorites'),
+                      title: 'Anuncios favoritos',
+                      subtitle: 'Productos que has marcado como favoritos',
+                      onTap: () => context.push('/favorite-listings'),
                     ),
                     const SizedBox(height: 12),
 
                     _ProfileOptionTile(
-                      icon: Icons.settings_outlined,
-                      title: 'Settings',
-                      subtitle: 'Manage your preferences',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _ProfileOptionTile(
                       icon: Icons.help_outline,
-                      title: 'Help',
+                      title: 'Ayuda y soporte',
                       subtitle: 'Support and FAQs',
-                      onTap: () {},
+                      onTap: () => context.push('/help'),
                     ),
 
                     const SizedBox(height: 24),
