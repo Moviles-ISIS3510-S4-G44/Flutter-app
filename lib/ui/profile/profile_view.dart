@@ -39,6 +39,7 @@ class _ProfileViewState extends State<ProfileView> {
       case 2:
         break;
       case 3:
+        context.go('/messages');
         break;
       case 4:
         context.go('/profile');

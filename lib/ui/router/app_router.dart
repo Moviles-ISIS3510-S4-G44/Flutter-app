@@ -7,6 +7,7 @@ import 'package:marketplace_flutter_application/ui/map_listing/map_listing_view.
 import 'package:marketplace_flutter_application/ui/my_listings/my_listings_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/widgets/personal_info_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_view.dart';
+import 'package:marketplace_flutter_application/ui/messages/messages_view.dart';
 
 import '../home/home_view.dart';
 import '../login/login_view.dart';
@@ -31,6 +32,10 @@ class AppRouter {
       GoRoute(
         path: '/Sell',
         builder: (context, state) => const CreateListingView(),
+      ),
+      GoRoute(
+        path: '/messages',
+        builder: (context, state) => const MessagesView(),
       ),
       GoRoute(
         path: '/listing/:listingId',

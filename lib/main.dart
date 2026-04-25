@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:marketplace_flutter_application/data/repositories/chat_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/favorite_listings_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
+import 'package:marketplace_flutter_application/data/services/chat_service.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/messages/messages_view_model.dart';
 import 'package:marketplace_flutter_application/ui/my_listings/my_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -135,7 +138,19 @@ class MyApp extends StatelessWidget {
 
         Provider<CategoryRepository>(create: (_) => CategoryRepository()),
         Provider<ImageUploadRepository>(create: (_) => ImageUploadRepository()),
+        Provider<ChatService>(
+          create: (_) => ChatService(baseUrl: dotenv.env['API_BASE_URL']!),
+        ),
 
+        Provider<ChatRepository>(
+          create: (context) =>
+              ChatRepository(chatService: context.read<ChatService>()),
+        ),
+
+        ChangeNotifierProvider<MessagesViewModel>(
+          create: (context) =>
+              MessagesViewModel(chatRepository: context.read<ChatRepository>()),
+        ),
         ChangeNotifierProvider<CreateListingViewModel>(
           create: (context) => CreateListingViewModel(
             connectivityService: context.read<ConnectivityService>(),
