@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:marketplace_flutter_application/ui/cart/cart_viewmodel.dart';
 
 class AppBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -12,6 +15,8 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cartCount = context.watch<CartViewModel>().count;
+
     return SizedBox(
       height: 72,
       child: Stack(
@@ -70,6 +75,7 @@ class AppBottomNavBar extends StatelessWidget {
             child: Center(
               child: _CenterCartItem(
                 isSelected: selectedIndex == 2,
+                cartCount: cartCount,
                 onTap: () => onTap?.call(2),
               ),
             ),
@@ -120,7 +126,8 @@ class _NavItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected ? selectedColor : unselectedColor,
                 ),
               ),
@@ -134,10 +141,12 @@ class _NavItem extends StatelessWidget {
 
 class _CenterCartItem extends StatelessWidget {
   final bool isSelected;
+  final int cartCount;
   final VoidCallback? onTap;
 
   const _CenterCartItem({
     required this.isSelected,
+    required this.cartCount,
     this.onTap,
   });
 
@@ -156,29 +165,61 @@ class _CenterCartItem extends StatelessWidget {
           children: [
             Positioned(
               top: 0,
-              child: Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE0E0E0),
-                    width: 1.2,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(20, 0, 0, 0),
-                      blurRadius: 10,
-                      offset: Offset(0, 2),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFE0E0E0),
+                        width: 1.2,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromARGB(20, 0, 0, 0),
+                          blurRadius: 10,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.shopping_cart_outlined,
-                  size: 26,
-                  color: isSelected ? selectedColor : unselectedColor,
-                ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 26,
+                      color: isSelected ? selectedColor : unselectedColor,
+                    ),
+                  ),
+                  // Badge contador
+                  if (cartCount > 0)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            cartCount > 99 ? '99+' : '$cartCount',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Positioned(
@@ -187,7 +228,8 @@ class _CenterCartItem extends StatelessWidget {
                 'Cart',
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected ? selectedColor : unselectedColor,
                 ),
               ),
