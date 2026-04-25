@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
 
@@ -74,10 +75,13 @@ class _PreviewImage extends StatelessWidget {
                   ),
                 ),
               )
-            : Image.network(
-                imageUrl,
+            : CachedNetworkImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, url, error) {
                   return Container(
                     color: Colors.grey.shade300,
                     child: const Center(

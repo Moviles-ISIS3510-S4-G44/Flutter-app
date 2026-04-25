@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
@@ -89,14 +90,20 @@ class _RecentlyViewedCard extends StatelessWidget {
             SizedBox(
               height: 90,
               width: double.infinity,
-              child: Image.network(
-                listing.imageUrl,
+              child: CachedNetworkImage(
+                imageUrl: listing.imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (_, __, ___) => Container(
                   color: const Color(0xFFF0F0F0),
                   child: const Center(
-                    child: Icon(Icons.image_outlined,
-                        size: 24, color: Colors.black38),
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 24,
+                      color: Colors.black38,
+                    ),
                   ),
                 ),
               ),
