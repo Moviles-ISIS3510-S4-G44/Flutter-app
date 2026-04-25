@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -149,15 +150,21 @@ class _MyListingsViewState extends State<MyListingsView> {
               children: [
                 Expanded(
                   flex: 7,
-                  child: Image.network(
-                    listing.imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: listing.imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
                       color: const Color(0xFFF0F0F0),
                       child: const Center(
-                        child: Icon(Icons.image_outlined,
-                            size: 32, color: Colors.black38),
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 32,
+                          color: Colors.black38,
+                        ),
                       ),
                     ),
                   ),
