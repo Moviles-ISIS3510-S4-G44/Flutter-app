@@ -37,7 +37,7 @@ class HomeViewModel extends ChangeNotifier {
     _subscribeToConnectivity();
   }
 
-  // ── Estado ─────────────────────────────────────────────────────────────────
+  // Estado
 
   bool isLoading = false;
   String? errorMessage;
