@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:marketplace_flutter_application/data/repositories/favorite_listings_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
+import 'package:marketplace_flutter_application/data/storage/recently_viewed_storage.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/my_listings/my_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
@@ -97,6 +99,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        // ── Favorites ──────────────────────────────────────────────────────
         Provider<FavoritesRepository>(create: (_) => FavoritesRepository()),
 
         ChangeNotifierProvider<FavoritesViewModel>(
@@ -105,6 +108,16 @@ class MyApp extends StatelessWidget {
           )..loadFavorites(),
         ),
 
+        // ── Recently Viewed (LRU) ──────────────────────────────────────────
+        Provider<RecentlyViewedStorage>(create: (_) => RecentlyViewedStorage()),
+
+        Provider<RecentlyViewedRepository>(
+          create: (context) => RecentlyViewedRepository(
+            storage: context.read<RecentlyViewedStorage>(),
+          ),
+        ),
+
+        // ── My Listings ────────────────────────────────────────────────────
         ChangeNotifierProvider<MyListingsViewModel>(
           create: (context) => MyListingsViewModel(
             listingRepository: context.read<ListingRepository>(),
@@ -112,6 +125,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        // ── Auth ViewModels ────────────────────────────────────────────────
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
             connectivityService: context.read<ConnectivityService>(),
@@ -130,6 +144,7 @@ class MyApp extends StatelessWidget {
             interactionRepository: context.read<InteractionRepository>(),
             categoryApiService: context.read<CategoryApiService>(),
             locationRepository: context.read<LocationRepository>(),
+            recentlyViewedRepository: context.read<RecentlyViewedRepository>(),
           ),
         ),
 
