@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:marketplace_flutter_application/ui/chat/chat_detail_view.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_view.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/widgets/help_view.dart';
@@ -17,18 +18,9 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/login',
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => LoginPage(),
-      ),
-      GoRoute(
-        path: '/signup',
-        builder: (context, state) => SignUpPage(),
-      ),
-      GoRoute(
-        path: '/Home',
-        builder: (context, state) => const HomeView(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => LoginPage()),
+      GoRoute(path: '/signup', builder: (context, state) => SignUpPage()),
+      GoRoute(path: '/Home', builder: (context, state) => const HomeView()),
       GoRoute(
         path: '/Sell',
         builder: (context, state) => const CreateListingView(),
@@ -67,9 +59,13 @@ class AppRouter {
         path: '/my-listings',
         builder: (context, state) => const MyListingsView(),
       ),
+      GoRoute(path: '/help', builder: (context, state) => const HelpView()),
       GoRoute(
-        path: '/help',
-        builder: (context, state) => const HelpView(),
+        path: '/messages/:conversationId',
+        builder: (context, state) {
+          final conversationId = state.pathParameters['conversationId']!;
+          return ChatDetailView(conversationId: conversationId);
+        },
       ),
     ],
   );
