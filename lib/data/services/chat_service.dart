@@ -6,9 +6,7 @@ import 'package:marketplace_flutter_application/models/chats/chat_conversation.d
 class ChatService {
   final String baseUrl;
 
-  ChatService({
-    required this.baseUrl,
-  });
+  ChatService({required this.baseUrl});
 
   Future<List<ChatConversation>> getConversations({
     required String accessToken,
@@ -40,5 +38,31 @@ class ChatService {
     return decoded
         .map((item) => ChatConversation.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<ChatConversation> createConversation({
+    required String accessToken,
+    required String listingId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/chat/conversations');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'listing_id': listingId}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        'Failed to create conversation: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+
+    return ChatConversation.fromJson(decoded);
   }
 }
