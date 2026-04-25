@@ -1,5 +1,6 @@
 class ListingSummary {
   final String id;
+  final String sellerId;
   final String title;
   final int price;
   final String category;
@@ -8,6 +9,7 @@ class ListingSummary {
 
   const ListingSummary({
     required this.id,
+    required this.sellerId,
     required this.title,
     required this.price,
     required this.category,
