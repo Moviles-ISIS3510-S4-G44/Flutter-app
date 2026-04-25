@@ -87,23 +87,13 @@ class ListingDetailViewModel extends ChangeNotifier {
       debugPrint('[ListingDetailViewModel] 2. Register interaction');
       debugPrint('[ListingDetailViewModel] 3. Load distance');
 
+      _registerInteraction(listingId); // fire-and-forget, no bloquea
       await Future.wait([
         _loadSeller(result.sellerId),
-        _registerInteraction(listingId),
         _loadDistance(result.location),
         _checkFavorite(listingId),
       ]);
-
-      debugPrint('[ListingDetailViewModel] Parallel tasks finished');
-      debugPrint('[ListingDetailViewModel] seller loaded: ${seller != null}');
-      debugPrint('[ListingDetailViewModel] distanceKm: $distanceKm');
-      debugPrint('[ListingDetailViewModel] loadListing END');
-      debugPrint('------------------------------');
-    } catch (e, stackTrace) {
-      debugPrint('[ListingDetailViewModel] ERROR loading listing detail');
-      debugPrint('[ListingDetailViewModel] Exception: $e');
-      debugPrint('[ListingDetailViewModel] StackTrace: $stackTrace');
-
+    } catch (e) {
       errorMessage = 'No se pudo cargar el detalle del listing';
       isLoading = false;
       notifyListeners();
@@ -220,19 +210,8 @@ class ListingDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _registerInteraction(String listingId) async {
-    debugPrint('[ListingDetailViewModel] _registerInteraction START');
-    debugPrint('[ListingDetailViewModel] listingId: $listingId');
-
     try {
       await _interactionRepository.registerInteraction(listingId: listingId);
-
-      debugPrint('[ListingDetailViewModel] Interaction registered successfully');
-    } catch (e, stackTrace) {
-      debugPrint('[ListingDetailViewModel] ERROR registering interaction');
-      debugPrint('[ListingDetailViewModel] Exception: $e');
-      debugPrint('[ListingDetailViewModel] StackTrace: $stackTrace');
-    } finally {
-      debugPrint('[ListingDetailViewModel] _registerInteraction END');
-    }
+    } catch (_) {}
   }
 }
