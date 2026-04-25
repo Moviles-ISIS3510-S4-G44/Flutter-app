@@ -7,6 +7,7 @@ import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/home_header.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/featured_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recent_listings_section.dart';
+import 'package:marketplace_flutter_application/ui/home/widgets/near_you_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/recently_viewed_section.dart';
 import 'package:marketplace_flutter_application/ui/home/widgets/top_interactions_section.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
@@ -72,7 +73,7 @@ class HomeView extends StatelessWidget {
   }
 }
 
-// Cache banner
+// Cache banner 
 
 class _CacheBanner extends StatelessWidget {
   final DateTime? cachedAt;
@@ -195,6 +196,10 @@ class _HomeBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (!isSearching) ...[
+                      TopInteractionsSection(
+                        listings: viewModel.topInteractionListings,
+                        distances: viewModel.distances,
+                      ),
                       if (viewModel.topInteractionListings.isNotEmpty)
                         const SizedBox(height: 16),
                       FeaturedSection(
@@ -203,7 +208,16 @@ class _HomeBody extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // Recently Viewed
+                      // ── Near You ────────────────────────────────────────
+                      if (viewModel.nearYouListings.isNotEmpty) ...[
+                        NearYouSection(
+                          listings: viewModel.nearYouListings,
+                          distances: viewModel.distances,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // ── Recently Viewed ──────────────────────────────────
                       if (viewModel.recentlyViewed.isNotEmpty) ...[
                         RecentlyViewedSection(
                           listings: viewModel.recentlyViewed,
