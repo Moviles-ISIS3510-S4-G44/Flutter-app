@@ -64,10 +64,11 @@ class ListingCacheStorage {
     }
   }
 
-  // Serialización 
+  // Serialización
 
   Map<String, dynamic> _summaryToJson(ListingSummary l) => {
         'id': l.id,
+        'sellerId': l.sellerId,
         'title': l.title,
         'price': l.price,
         'category': l.category,
@@ -77,6 +78,7 @@ class ListingCacheStorage {
 
   ListingSummary _summaryFromJson(Map<String, dynamic> json) => ListingSummary(
         id: json['id'] as String,
+        sellerId: (json['sellerId'] as String?) ?? '',
         title: json['title'] as String,
         price: json['price'] as int,
         category: json['category'] as String,
