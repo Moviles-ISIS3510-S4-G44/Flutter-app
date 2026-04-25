@@ -195,10 +195,6 @@ class _HomeBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (!isSearching) ...[
-                      TopInteractionsSection(
-                        listings: viewModel.topInteractionListings,
-                        distances: viewModel.distances,
-                      ),
                       if (viewModel.topInteractionListings.isNotEmpty)
                         const SizedBox(height: 16),
                       FeaturedSection(
