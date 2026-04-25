@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -55,10 +56,13 @@ class ListingCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(
-                      listing.imageUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: listing.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      errorWidget: (context, url, error) {
                         return Container(
                           color: const Color(0xFFF0F0F0),
                           child: const Center(
@@ -73,7 +77,7 @@ class ListingCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Botón favorito 
+                  // Botón favorito
                   Positioned(
                     top: 8,
                     left: 8,
@@ -149,8 +153,11 @@ class ListingCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.location_on,
-                                size: 11, color: Colors.white),
+                            const Icon(
+                              Icons.location_on,
+                              size: 11,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               _formatDistance(distanceKm!),
