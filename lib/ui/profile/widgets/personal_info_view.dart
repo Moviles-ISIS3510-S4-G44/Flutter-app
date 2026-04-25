@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 
-class PersonalInformationView extends StatelessWidget {
+class PersonalInformationView extends StatefulWidget {
   const PersonalInformationView({super.key});
 
+  @override
+  State<PersonalInformationView> createState() =>
+      _PersonalInformationViewState();
+}
+
+class _PersonalInformationViewState extends State<PersonalInformationView> {
   static const Color background = Color(0xFFEEF2F7);
   static const Color textPrimary = Color(0xFF1A1A1A);
   static const Color textSecondary = Color(0xFF6E6E6E);
@@ -14,9 +23,55 @@ class PersonalInformationView extends StatelessWidget {
   static const Color borderColor = Color(0xFFE5E7EB);
   static const Color accent = Color(0xFFFFD700);
 
+  bool _checkingAuth = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthAndLoadProfile();
+    });
+  }
+
+  Future<void> _checkAuthAndLoadProfile() async {
+    final authRepository = context.read<AuthRepository>();
+    final token = await authRepository.getAccessToken();
+
+    if (!mounted) return;
+
+    if (token == null || token.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to view your personal information.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      context.go('/login');
+      return;
+    }
+
+    setState(() {
+      _checkingAuth = false;
+    });
+
+    await context.read<ProfileViewModel>().loadProfile();
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<ProfileViewModel>().currentUser;
+    final connectivityModel = context.watch<ConnectivityModel>();
+
+    if (_checkingAuth) {
+      return const Scaffold(
+        backgroundColor: background,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: background,
@@ -36,78 +91,81 @@ class PersonalInformationView extends StatelessWidget {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Avatar
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 28),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: borderColor),
-                ),
+      body: Column(
+        children: [
+          if (!connectivityModel.isOnline) const ConnectivityView(),
+          Expanded(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 42,
-                      backgroundColor: accent.withOpacity(0.25),
-                      child: const Icon(
-                        Icons.person,
-                        size: 44,
-                        color: textPrimary,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 28),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 42,
+                            backgroundColor: accent.withOpacity(0.25),
+                            child: const Icon(
+                              Icons.person,
+                              size: 44,
+                              color: textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            user?.name ?? '—',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      user?.name ?? '—',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
+                    const SizedBox(height: 16),
+                    _InfoCard(
+                      children: [
+                        _InfoRow(
+                          icon: Icons.badge_outlined,
+                          label: 'Full name',
+                          value: user?.name ?? '—',
+                        ),
+                        _Divider(),
+                        _InfoRow(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          value: user?.email ?? '—',
+                        ),
+                        _Divider(),
+                        _InfoRow(
+                          icon: Icons.star_outline_rounded,
+                          label: 'Rating',
+                          value: user != null ? '${user.rating} / 5' : '—',
+                        ),
+                        _Divider(),
+                        _InfoRow(
+                          icon: Icons.tag,
+                          label: 'User ID',
+                          value: user?.id ?? '—',
+                          mono: true,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 16),
-
-              // Campos
-              _InfoCard(
-                children: [
-                  _InfoRow(
-                    icon: Icons.badge_outlined,
-                    label: 'Full name',
-                    value: user?.name ?? '—',
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.email_outlined,
-                    label: 'Email',
-                    value: user?.email ?? '—',
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.star_outline_rounded,
-                    label: 'Rating',
-                    value: user != null ? '${user.rating} / 5' : '—',
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.tag,
-                    label: 'User ID',
-                    value: user?.id ?? '—',
-                    mono: true,
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
