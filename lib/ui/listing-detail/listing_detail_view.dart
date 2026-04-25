@@ -8,10 +8,13 @@ import 'package:marketplace_flutter_application/data/repositories/favorite_listi
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/cart/cart_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
 
@@ -37,6 +40,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
       authRepository: context.read<AuthRepository>(),
       locationRepository: context.read<LocationRepository>(),
       favoritesRepository: context.read<FavoritesRepository>(),
+      recentlyViewedRepository: context.read<RecentlyViewedRepository>(),
     );
     _viewModel.loadListing(widget.listingId);
   }
@@ -58,7 +62,11 @@ class _ListingDetailViewState extends State<ListingDetailView> {
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                // Refresca la sección LRU del home al volver
+                context.read<HomeViewModel>().refreshRecentlyViewed();
+                context.pop();
+              },
             ),
             title: const Text('Product Details'),
             actions: [
@@ -75,7 +83,6 @@ class _ListingDetailViewState extends State<ListingDetailView> {
                   ),
                   onPressed: () async {
                     await _viewModel.toggleFavorite();
-                    // Sincroniza el VM global de favoritos
                     if (context.mounted) {
                       context.read<FavoritesViewModel>().loadFavorites();
                     }
@@ -206,6 +213,59 @@ class _ListingDetailViewState extends State<ListingDetailView> {
     );
   }
 }
+
+// Add to Cart button 
+
+class _AddToCartButton extends StatelessWidget {
+  final String listingId;
+  final dynamic listing;
+
+  const _AddToCartButton({required this.listingId, required this.listing});
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.watch<CartViewModel>();
+    final inCart = cart.isInCart(listingId);
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          if (inCart) {
+            cart.remove(listingId);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Removed from cart')),
+            );
+          } else {
+            cart.add(listing);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Added to cart')),
+            );
+          }
+        },
+        icon: Icon(inCart ? Icons.remove_shopping_cart_outlined
+            : Icons.add_shopping_cart_outlined),
+        label: Text(inCart ? 'Remove from Cart' : 'Add to Cart'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              inCart ? const Color(0xFFF5F5F5) : const Color(0xFF3483FA),
+          foregroundColor:
+              inCart ? const Color(0xFF1A1A1A) : Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: inCart
+                ? const BorderSide(color: Color(0xFFE5E7EB))
+                : BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//  Error state 
 
 class _ErrorState extends StatelessWidget {
   final String message;
