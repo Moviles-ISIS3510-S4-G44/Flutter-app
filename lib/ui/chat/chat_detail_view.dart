@@ -4,6 +4,8 @@ import 'package:marketplace_flutter_application/data/repositories/auth_repositor
 import 'package:marketplace_flutter_application/data/repositories/chat_repository.dart';
 import 'package:marketplace_flutter_application/models/chats/chat_message.dart';
 import 'package:marketplace_flutter_application/ui/chat/chat_detail_view_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:provider/provider.dart';
 
 class ChatDetailView extends StatefulWidget {
@@ -23,6 +25,8 @@ class _ChatDetailViewState extends State<ChatDetailView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  bool _checkingAuth = true;
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +37,35 @@ class _ChatDetailViewState extends State<ChatDetailView> {
       conversationId: widget.conversationId,
     );
 
-    _viewModel.loadChat().then((_) => _scrollToBottom());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthAndLoad();
+    });
+  }
+
+  Future<void> _checkAuthAndLoad() async {
+    final authRepository = context.read<AuthRepository>();
+    final token = await authRepository.getAccessToken();
+
+    if (!mounted) return;
+
+    if (token == null || token.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to open this chat.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      context.go('/login');
+      return;
+    }
+
+    setState(() {
+      _checkingAuth = false;
+    });
+
+    await _viewModel.loadChat();
+    _scrollToBottom();
   }
 
   @override
@@ -47,6 +79,18 @@ class _ChatDetailViewState extends State<ChatDetailView> {
   Future<void> _sendMessage() async {
     final text = _messageController.text;
     if (text.trim().isEmpty) return;
+
+    final connectivityModel = context.read<ConnectivityModel>();
+
+    if (!connectivityModel.isOnline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You are offline. Connect to send messages.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     _messageController.clear();
 
@@ -68,6 +112,17 @@ class _ChatDetailViewState extends State<ChatDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final connectivityModel = context.watch<ConnectivityModel>();
+
+    if (_checkingAuth) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFEEF2F7),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return AnimatedBuilder(
       animation: _viewModel,
       builder: (context, _) {
@@ -108,10 +163,12 @@ class _ChatDetailViewState extends State<ChatDetailView> {
           ),
           body: Column(
             children: [
+              if (!connectivityModel.isOnline) const ConnectivityView(),
               Expanded(child: _buildBody()),
               _MessageInput(
                 controller: _messageController,
                 isSending: _viewModel.isSending,
+                isOnline: connectivityModel.isOnline,
                 onSend: _sendMessage,
               ),
             ],
@@ -206,11 +263,13 @@ class _MessageBubble extends StatelessWidget {
 class _MessageInput extends StatelessWidget {
   final TextEditingController controller;
   final bool isSending;
+  final bool isOnline;
   final VoidCallback onSend;
 
   const _MessageInput({
     required this.controller,
     required this.isSending,
+    required this.isOnline,
     required this.onSend,
   });
 
@@ -229,14 +288,17 @@ class _MessageInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
+                enabled: isOnline,
                 minLines: 1,
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) {
-                  if (!isSending) onSend();
+                  if (!isSending && isOnline) onSend();
                 },
                 decoration: InputDecoration(
-                  hintText: 'Write a message...',
+                  hintText: isOnline
+                      ? 'Write a message...'
+                      : 'Connect to send messages',
                   filled: true,
                   fillColor: const Color(0xFFF2F4F7),
                   contentPadding: const EdgeInsets.symmetric(
@@ -252,7 +314,7 @@ class _MessageInput extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             IconButton(
-              onPressed: isSending ? null : onSend,
+              onPressed: isSending || !isOnline ? null : onSend,
               icon: isSending
                   ? const SizedBox(
                       width: 18,
