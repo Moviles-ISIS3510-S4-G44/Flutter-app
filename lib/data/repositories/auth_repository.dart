@@ -91,6 +91,10 @@ class AuthRepository {
     );
   }
 
+  Future<String?> getAccessToken() async {
+    return tokenStorage.getToken();
+  }
+
   Future<void> logout() async {
     await tokenStorage.clearToken();
   }
