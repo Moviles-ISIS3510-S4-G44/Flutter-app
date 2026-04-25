@@ -46,18 +46,10 @@ class ListingDetailViewModel extends ChangeNotifier {
         _favoritesRepository = favoritesRepository;
 
   Future<void> loadListing(String listingId) async {
-    debugPrint('------------------------------');
-    debugPrint('[ListingDetailViewModel] loadListing START');
-    debugPrint('[ListingDetailViewModel] listingId: $listingId');
-
     _currentListingId = listingId;
 
-    final isOnline = await _connectivityService.isOnline;
-    debugPrint('[ListingDetailViewModel] isOnline: $isOnline');
-
-    if (!isOnline) {
+    if (!await _connectivityService.isOnline) {
       errorMessage = 'Sin conexión a internet';
-      debugPrint('[ListingDetailViewModel] ERROR: Sin conexión a internet');
       notifyListeners();
       return;
     }
@@ -69,23 +61,10 @@ class ListingDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('[ListingDetailViewModel] Fetching listing detail...');
-
       final result = await _listingRepository.getListingById(listingId);
-
-      debugPrint('[ListingDetailViewModel] Listing loaded successfully');
-      debugPrint('[ListingDetailViewModel] listing.id: ${result.id}');
-      debugPrint('[ListingDetailViewModel] listing.sellerId: ${result.sellerId}');
-      debugPrint('[ListingDetailViewModel] listing.location: ${result.location}');
-
       listing = result;
       isLoading = false;
       notifyListeners();
-
-      debugPrint('[ListingDetailViewModel] Running parallel tasks...');
-      debugPrint('[ListingDetailViewModel] 1. Load seller');
-      debugPrint('[ListingDetailViewModel] 2. Register interaction');
-      debugPrint('[ListingDetailViewModel] 3. Load distance');
 
       _registerInteraction(listingId); // fire-and-forget, no bloquea
       await Future.wait([
@@ -94,21 +73,14 @@ class ListingDetailViewModel extends ChangeNotifier {
         _checkFavorite(listingId),
       ]);
     } catch (e) {
-      errorMessage = 'No se pudo cargar el detalle del listing';
-      isLoading = false;
-      notifyListeners();
+    errorMessage = 'No se pudo cargar el detalle del listing';
+    isLoading = false;
+    notifyListeners();
     }
   }
 
   Future<void> retry() async {
-    debugPrint('[ListingDetailViewModel] retry called');
-    debugPrint('[ListingDetailViewModel] currentListingId: $_currentListingId');
-
-    if (_currentListingId == null) {
-      debugPrint('[ListingDetailViewModel] retry cancelled: no current listing id');
-      return;
-    }
-
+    if (_currentListingId == null) return;
     await loadListing(_currentListingId!);
   }
 
@@ -145,73 +117,44 @@ class ListingDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadSeller(String sellerId) async {
-    debugPrint('[ListingDetailViewModel] _loadSeller START');
-    debugPrint('[ListingDetailViewModel] sellerId: $sellerId');
-
     isLoadingSeller = true;
     notifyListeners();
-
     try {
       seller = await _authRepository.getUserById(sellerId);
-
-      debugPrint('[ListingDetailViewModel] Seller loaded successfully');
-      debugPrint('[ListingDetailViewModel] seller.id: ${seller?.id}');
-      debugPrint('[ListingDetailViewModel] seller.name: ${seller?.name}');
-      debugPrint('[ListingDetailViewModel] seller.email: ${seller?.email}');
-    } catch (e, stackTrace) {
-      debugPrint('[ListingDetailViewModel] ERROR loading seller');
-      debugPrint('[ListingDetailViewModel] Exception: $e');
-      debugPrint('[ListingDetailViewModel] StackTrace: $stackTrace');
-
+    } catch (_) {
       seller = null;
     } finally {
       isLoadingSeller = false;
       notifyListeners();
-      debugPrint('[ListingDetailViewModel] _loadSeller END');
     }
   }
 
   Future<void> _loadDistance(String? location) async {
-    debugPrint('[ListingDetailViewModel] _loadDistance START');
-    debugPrint('[ListingDetailViewModel] raw location: $location');
-
     try {
-      if (location == null || location.isEmpty) {
-        debugPrint('[ListingDetailViewModel] Distance skipped: location is null or empty');
-        return;
-      }
-
+      if (location == null || location.isEmpty) return;
       final parts = location.split(',');
-      debugPrint('[ListingDetailViewModel] location parts: $parts');
-
-      if (parts.length != 2) {
-        debugPrint('[ListingDetailViewModel] Distance skipped: invalid location format');
-        return;
-      }
-
+      if (parts.length != 2) return;
       final lat = double.tryParse(parts[0].trim());
       final lng = double.tryParse(parts[1].trim());
       if (lat == null || lng == null) return;
       distanceKm = await _locationRepository.getDistanceTo(lat, lng);
-
-      debugPrint('[ListingDetailViewModel] Distance loaded successfully');
-      debugPrint('[ListingDetailViewModel] distanceKm: $distanceKm');
-
       notifyListeners();
-    } catch (e, stackTrace) {
-      debugPrint('[ListingDetailViewModel] ERROR loading distance');
-      debugPrint('[ListingDetailViewModel] Exception: $e');
-      debugPrint('[ListingDetailViewModel] StackTrace: $stackTrace');
-
+    } catch (_) {
       distanceKm = null;
-    } finally {
-      debugPrint('[ListingDetailViewModel] _loadDistance END');
     }
   }
 
-  Future<void> _registerInteraction(String listingId) async {
-    try {
-      await _interactionRepository.registerInteraction(listingId: listingId);
-    } catch (_) {}
-  }
+  void _registerInteraction(String listingId) {
+    _interactionRepository
+        .registerInteraction(listingId: listingId)
+        .then((_) {
+          debugPrint('Interaction registered for listing $listingId');
+        })
+        .catchError((error) {
+          debugPrint('Failed to register interaction: $error');
+        })
+        .whenComplete(() {
+          debugPrint('_registerInteraction complete');
+        });
+    }
 }
