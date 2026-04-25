@@ -41,7 +41,7 @@ class NearYouSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '< 2 km',
+                  '< 10 km',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

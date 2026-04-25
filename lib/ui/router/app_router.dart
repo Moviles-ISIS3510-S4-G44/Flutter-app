@@ -7,6 +7,7 @@ import 'package:marketplace_flutter_application/ui/map_listing/map_listing_view.
 import 'package:marketplace_flutter_application/ui/my_listings/my_listings_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/widgets/personal_info_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_view.dart';
+import 'package:marketplace_flutter_application/ui/cart/cart_view.dart';
 
 import '../home/home_view.dart';
 import '../login/login_view.dart';
@@ -51,6 +52,10 @@ class AppRouter {
         builder: (context, state) => const ProfileView(),
       ),
       GoRoute(
+        path: '/cart',
+        builder: (context, state) => const CartView(),
+      ),
+      GoRoute(
         path: '/favorite-listings',
         builder: (context, state) => const FavoritesView(),
       ),
@@ -66,6 +71,8 @@ class AppRouter {
         path: '/help',
         builder: (context, state) => const HelpView(),
       ),
+
+      
     ],
   );
 }

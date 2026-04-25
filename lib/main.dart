@@ -5,6 +5,7 @@ import 'package:marketplace_flutter_application/data/repositories/favorite_listi
 import 'package:marketplace_flutter_application/data/repositories/image_upload_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
 import 'package:marketplace_flutter_application/data/storage/recently_viewed_storage.dart';
+import 'package:marketplace_flutter_application/ui/cart/cart_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/my_listings/my_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
@@ -97,6 +98,11 @@ class MyApp extends StatelessWidget {
           create: (context) => LocationRepository(
             locationService: context.read<LocationService>(),
           ),
+        ),
+
+        // ── Cart ───────────────────────────────────────────────────────────
+        ChangeNotifierProvider<CartViewModel>(
+          create: (_) => CartViewModel(),
         ),
 
         // ── Favorites ──────────────────────────────────────────────────────

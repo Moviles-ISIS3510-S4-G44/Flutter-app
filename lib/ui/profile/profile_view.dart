@@ -37,6 +37,7 @@ class _ProfileViewState extends State<ProfileView> {
         context.go('/Sell');
         break;
       case 2:
+        context.go('/cart');
         break;
       case 3:
         break;
@@ -72,7 +73,7 @@ class _ProfileViewState extends State<ProfileView> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Column(
                   children: [
-                    // Avatar card 
+                    
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -117,26 +118,26 @@ class _ProfileViewState extends State<ProfileView> {
 
                     const SizedBox(height: 16),
 
-                    // Opciones 
+                    // Opciones
                     _ProfileOptionTile(
                       icon: Icons.person_outline,
                       title: 'Información personal',
-                      subtitle: 'Mira tu información de perfil',
+                      subtitle: 'Ver los detalles básicos de tu cuenta',
                       onTap: () => context.push('/personal-information'),
                     ),
                     const SizedBox(height: 12),
                     _ProfileOptionTile(
                       icon: Icons.shopping_bag_outlined,
-                      title: 'Mis anuncios',
+                      title: 'Mis productos',
                       subtitle: 'Ver los productos que has publicado',
                       onTap: () => context.push('/my-listings'),
                     ),
                     const SizedBox(height: 12),
 
-                    // Favorite listings 
+                    //  Favorite listings
                     _ProfileOptionTile(
                       icon: Icons.star_outline_rounded,
-                      title: 'Anuncios favoritos',
+                      title: 'Productos Favoritos',
                       subtitle: 'Productos que has marcado como favoritos',
                       onTap: () => context.push('/favorite-listings'),
                     ),
@@ -145,13 +146,13 @@ class _ProfileViewState extends State<ProfileView> {
                     _ProfileOptionTile(
                       icon: Icons.help_outline,
                       title: 'Ayuda y soporte',
-                      subtitle: 'Support and FAQs',
+                      subtitle: 'Soporte y preguntas frecuentes',
                       onTap: () => context.push('/help'),
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Logout 
+              
                     SizedBox(
                       width: double.infinity,
                       height: 52,

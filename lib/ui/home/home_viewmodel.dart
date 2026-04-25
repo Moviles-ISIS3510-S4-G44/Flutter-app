@@ -37,7 +37,7 @@ class HomeViewModel extends ChangeNotifier {
     _subscribeToConnectivity();
   }
 
-  // ── Estado ─────────────────────────────────────────────────────────────────
+  // Estado
 
   bool isLoading = false;
   String? errorMessage;
@@ -53,7 +53,7 @@ class HomeViewModel extends ChangeNotifier {
   List<ListingSummary> nearYouListings = [];
   Map<String, double> distances = {};
 
-  static const double _nearYouRadiusKm = 2.0;
+  static const double _nearYouRadiusKm = 10.0;
 
   bool isShowingCachedData = false;
   DateTime? cachedAt;
