@@ -7,10 +7,12 @@ import 'package:marketplace_flutter_application/data/repositories/favorite_listi
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
+import 'package:marketplace_flutter_application/ui/home/home_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
 
@@ -39,6 +41,7 @@ class _ListingDetailViewState extends State<ListingDetailView> {
       authRepository: context.read<AuthRepository>(),
       locationRepository: context.read<LocationRepository>(),
       favoritesRepository: context.read<FavoritesRepository>(),
+      recentlyViewedRepository: context.read<RecentlyViewedRepository>(),
     );
     _viewModel.loadListing(widget.listingId);
   }
@@ -60,7 +63,11 @@ class _ListingDetailViewState extends State<ListingDetailView> {
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                // Refresca la sección LRU del home al volver
+                context.read<HomeViewModel>().refreshRecentlyViewed();
+                context.pop();
+              },
             ),
             title: const Text('Product Details'),
             actions: [
@@ -77,7 +84,6 @@ class _ListingDetailViewState extends State<ListingDetailView> {
                   ),
                   onPressed: () async {
                     await _viewModel.toggleFavorite();
-                    // Sincroniza el VM global de favoritos
                     if (context.mounted) {
                       context.read<FavoritesViewModel>().loadFavorites();
                     }
