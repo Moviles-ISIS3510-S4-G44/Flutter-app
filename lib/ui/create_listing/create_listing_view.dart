@@ -26,7 +26,8 @@ class CreateListingView extends StatelessWidget {
         case 2:
           break; // carrito
         case 3:
-          break; // messages
+          context.go('/messages');
+          break;
         case 4:
           context.go('/profile');
           break;
