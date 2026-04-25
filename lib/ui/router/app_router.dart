@@ -51,7 +51,7 @@ class AppRouter {
         builder: (context, state) => const ProfileView(),
       ),
       GoRoute(
-        path: '/favorites',
+        path: '/favorite-listings',
         builder: (context, state) => const FavoritesView(),
       ),
       GoRoute(
