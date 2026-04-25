@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
+import 'package:marketplace_flutter_application/data/domains/favorites/favorite_listings.dart';
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/favorite_listings_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
@@ -13,6 +15,7 @@ class ListingDetailViewModel extends ChangeNotifier {
   final ConnectivityService _connectivityService;
   final AuthRepository _authRepository;
   final LocationRepository _locationRepository;
+  final FavoritesRepository _favoritesRepository;
 
   ListingDetail? listing;
   bool isLoading = false;
@@ -23,6 +26,9 @@ class ListingDetailViewModel extends ChangeNotifier {
 
   double? distanceKm;
 
+  bool isFavorite = false;
+  bool _togglingFavorite = false;
+
   String? _currentListingId;
 
   ListingDetailViewModel({
@@ -31,11 +37,13 @@ class ListingDetailViewModel extends ChangeNotifier {
     required ConnectivityService connectivityService,
     required AuthRepository authRepository,
     required LocationRepository locationRepository,
+    required FavoritesRepository favoritesRepository,
   })  : _listingRepository = listingRepository,
         _interactionRepository = interactionRepository,
         _connectivityService = connectivityService,
         _authRepository = authRepository,
-        _locationRepository = locationRepository;
+        _locationRepository = locationRepository,
+        _favoritesRepository = favoritesRepository;
 
   Future<void> loadListing(String listingId) async {
     _currentListingId = listingId;
@@ -62,6 +70,7 @@ class ListingDetailViewModel extends ChangeNotifier {
         _loadSeller(result.sellerId),
         _registerInteraction(listingId),
         _loadDistance(result.location),
+        _checkFavorite(listingId),
       ]);
     } catch (e) {
       errorMessage = 'No se pudo cargar el detalle del listing';
@@ -73,6 +82,38 @@ class ListingDetailViewModel extends ChangeNotifier {
   Future<void> retry() async {
     if (_currentListingId == null) return;
     await loadListing(_currentListingId!);
+  }
+
+  Future<void> toggleFavorite() async {
+    if (_togglingFavorite || listing == null) return;
+    _togglingFavorite = true;
+
+    try {
+      final fav = FavoriteListing(
+        id: listing!.id,
+        title: listing!.title,
+        price: listing!.price,
+        imageUrl: listing!.images.isNotEmpty ? listing!.images.first : '',
+        category: listing!.categoryId,
+        location: listing!.location,
+      );
+
+      if (isFavorite) {
+        await _favoritesRepository.remove(fav.id);
+        isFavorite = false;
+      } else {
+        await _favoritesRepository.add(fav);
+        isFavorite = true;
+      }
+      notifyListeners();
+    } finally {
+      _togglingFavorite = false;
+    }
+  }
+
+  Future<void> _checkFavorite(String listingId) async {
+    isFavorite = await _favoritesRepository.isFavorite(listingId);
+    notifyListeners();
   }
 
   Future<void> _loadSeller(String sellerId) async {
@@ -96,7 +137,6 @@ class ListingDetailViewModel extends ChangeNotifier {
       final lat = double.tryParse(parts[0].trim());
       final lng = double.tryParse(parts[1].trim());
       if (lat == null || lng == null) return;
-
       distanceKm = await _locationRepository.getDistanceTo(lat, lng);
       notifyListeners();
     } catch (_) {
