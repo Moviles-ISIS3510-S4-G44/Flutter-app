@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
+import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
 
@@ -20,12 +23,40 @@ class _ProfileViewState extends State<ProfileView> {
   static const Color accent = Color(0xFFFFD700);
   static const Color borderColor = Color(0xFFE5E7EB);
 
+  bool _checkingAuth = true;
+
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileViewModel>().loadProfile();
+      _checkAuthAndLoadProfile();
     });
+  }
+
+  Future<void> _checkAuthAndLoadProfile() async {
+    final authRepository = context.read<AuthRepository>();
+    final token = await authRepository.getAccessToken();
+
+    if (!mounted) return;
+
+    if (token == null || token.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to view your profile.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      context.go('/login');
+      return;
+    }
+
+    setState(() {
+      _checkingAuth = false;
+    });
+
+    await context.read<ProfileViewModel>().loadProfile();
   }
 
   void _onBottomNavTap(int index) {
@@ -51,6 +82,16 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfileViewModel>();
+    final connectivityModel = context.watch<ConnectivityModel>();
+
+    if (_checkingAuth) {
+      return const Scaffold(
+        backgroundColor: background,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: background,
@@ -67,132 +108,129 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         ),
       ),
-      body: viewModel.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                child: Column(
-                  children: [
-                    
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: borderColor),
-                      ),
+      body: Column(
+        children: [
+          if (!connectivityModel.isOnline) const ConnectivityView(),
+          Expanded(
+            child: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SafeArea(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       child: Column(
                         children: [
-                          CircleAvatar(
-                            radius: 38,
-                            backgroundColor: accent.withOpacity(0.25),
-                            child: const Icon(
-                              Icons.person,
-                              size: 40,
-                              color: textPrimary,
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 38,
+                                  backgroundColor: accent.withOpacity(0.25),
+                                  child: const Icon(
+                                    Icons.person,
+                                    size: 40,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  viewModel.currentUser?.name ?? 'Usuario',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: textPrimary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  viewModel.currentUser?.email ?? 'Sin correo',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 14),
-                          Text(
-                            viewModel.currentUser?.name ?? 'Usuario',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary,
-                            ),
-                            textAlign: TextAlign.center,
+                          const SizedBox(height: 16),
+                          _ProfileOptionTile(
+                            icon: Icons.person_outline,
+                            title: 'Información personal',
+                            subtitle: 'Ver los detalles básicos de tu cuenta',
+                            onTap: () => context.push('/personal-information'),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            viewModel.currentUser?.email ?? 'Sin correo',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: textSecondary,
-                            ),
-                            textAlign: TextAlign.center,
+                          const SizedBox(height: 12),
+                          _ProfileOptionTile(
+                            icon: Icons.shopping_bag_outlined,
+                            title: 'Mis productos',
+                            subtitle: 'Ver los productos que has publicado',
+                            onTap: () => context.push('/my-listings'),
                           ),
+                          const SizedBox(height: 12),
+                          _ProfileOptionTile(
+                            icon: Icons.star_outline_rounded,
+                            title: 'Productos Favoritos',
+                            subtitle:
+                                'Productos que has marcado como favoritos',
+                            onTap: () => context.push('/favorite-listings'),
+                          ),
+                          const SizedBox(height: 12),
+                          _ProfileOptionTile(
+                            icon: Icons.help_outline,
+                            title: 'Ayuda y soporte',
+                            subtitle: 'Soporte y preguntas frecuentes',
+                            onTap: () => context.push('/help'),
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                await context.read<ProfileViewModel>().logout();
+                                if (!context.mounted) return;
+                                context.go('/login');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                elevation: 0,
+                              ),
+                              icon: const Icon(Icons.logout),
+                              label: const Text(
+                                'Log out',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (viewModel.errorMessage != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              viewModel.errorMessage!,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // Opciones
-                    _ProfileOptionTile(
-                      icon: Icons.person_outline,
-                      title: 'Información personal',
-                      subtitle: 'Ver los detalles básicos de tu cuenta',
-                      onTap: () => context.push('/personal-information'),
-                    ),
-                    const SizedBox(height: 12),
-                    _ProfileOptionTile(
-                      icon: Icons.shopping_bag_outlined,
-                      title: 'Mis productos',
-                      subtitle: 'Ver los productos que has publicado',
-                      onTap: () => context.push('/my-listings'),
-                    ),
-                    const SizedBox(height: 12),
-
-                    //  Favorite listings
-                    _ProfileOptionTile(
-                      icon: Icons.star_outline_rounded,
-                      title: 'Productos Favoritos',
-                      subtitle: 'Productos que has marcado como favoritos',
-                      onTap: () => context.push('/favorite-listings'),
-                    ),
-                    const SizedBox(height: 12),
-
-                    _ProfileOptionTile(
-                      icon: Icons.help_outline,
-                      title: 'Ayuda y soporte',
-                      subtitle: 'Soporte y preguntas frecuentes',
-                      onTap: () => context.push('/help'),
-                    ),
-
-                    const SizedBox(height: 24),
-
-              
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          await context.read<ProfileViewModel>().logout();
-                          if (!context.mounted) return;
-                          context.go('/login');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          elevation: 0,
-                        ),
-                        icon: const Icon(Icons.logout),
-                        label: const Text(
-                          'Log out',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    if (viewModel.errorMessage != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        viewModel.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+                  ),
+          ),
+        ],
+      ),
       bottomNavigationBar: AppBottomNavBar(
         selectedIndex: 4,
         onTap: _onBottomNavTap,

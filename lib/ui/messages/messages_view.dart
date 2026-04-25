@@ -16,25 +16,33 @@ class MessagesView extends StatefulWidget {
 }
 
 class _MessagesViewState extends State<MessagesView> {
+  bool _checkingAuth = true;
+
   @override
   void initState() {
     super.initState();
+    Future.microtask(_checkAuthAndLoad);
+  }
 
-    Future.microtask(() async {
-      final authRepository = context.read<AuthRepository>();
-      final token = await authRepository.getAccessToken();
+  Future<void> _checkAuthAndLoad() async {
+    final authRepository = context.read<AuthRepository>();
+    final token = await authRepository.getAccessToken();
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (token == null || token.trim().isEmpty) {
-        debugPrint('NO TOKEN FOR CHAT');
-        return;
-      }
+    if (token == null || token.trim().isEmpty) {
+      debugPrint('NO TOKEN FOR CHAT - REDIRECTING TO LOGIN');
+      context.go('/login');
+      return;
+    }
 
-      await context.read<MessagesViewModel>().loadConversations(
-        accessToken: token,
-      );
+    setState(() {
+      _checkingAuth = false;
     });
+
+    await context.read<MessagesViewModel>().loadConversations(
+          accessToken: token,
+        );
   }
 
   void _onNavTap(BuildContext context, int index) {
@@ -61,6 +69,15 @@ class _MessagesViewState extends State<MessagesView> {
   Widget build(BuildContext context) {
     final connectivityModel = context.watch<ConnectivityModel>();
     final viewModel = context.watch<MessagesViewModel>();
+
+    if (_checkingAuth) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFEEF2F7),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFEEF2F7),
@@ -113,11 +130,11 @@ class _MessagesContent extends StatelessWidget {
     if (viewModel.errorMessage != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Text(
             viewModel.errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: Color(0xFF666666),
             ),
