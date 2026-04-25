@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/favorite_listings_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
+import 'package:marketplace_flutter_application/ui/favorite_listings/favorite_listings_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/listing_detail_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/listing-detail/widgets/listing_detail_body.dart';
 
@@ -30,16 +32,14 @@ class _ListingDetailViewState extends State<ListingDetailView> {
   @override
   void initState() {
     super.initState();
-
-    // Todos los deps se inyectan desde el árbol de Providers — sin instancias internas
     _viewModel = ListingDetailViewModel(
       listingRepository: context.read<ListingRepository>(),
       interactionRepository: context.read<InteractionRepository>(),
       connectivityService: context.read<ConnectivityService>(),
       authRepository: context.read<AuthRepository>(),
       locationRepository: context.read<LocationRepository>(),
+      favoritesRepository: context.read<FavoritesRepository>(),
     );
-
     _viewModel.loadListing(widget.listingId);
   }
 
@@ -63,6 +63,27 @@ class _ListingDetailViewState extends State<ListingDetailView> {
               onPressed: () => context.pop(),
             ),
             title: const Text('Product Details'),
+            actions: [
+              if (_viewModel.listing != null)
+                IconButton(
+                  tooltip: _viewModel.isFavorite
+                      ? 'Remove from favorites'
+                      : 'Add to favorites',
+                  icon: Icon(
+                    _viewModel.isFavorite ? Icons.star : Icons.star_border,
+                    color: _viewModel.isFavorite
+                        ? const Color(0xFFFFD700)
+                        : null,
+                  ),
+                  onPressed: () async {
+                    await _viewModel.toggleFavorite();
+                    // Sincroniza el VM global de favoritos
+                    if (context.mounted) {
+                      context.read<FavoritesViewModel>().loadFavorites();
+                    }
+                  },
+                ),
+            ],
           ),
           body: Column(
             children: [
@@ -108,7 +129,6 @@ class _ListingDetailViewState extends State<ListingDetailView> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Row(
               children: [
-                // Ver en mapa
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: isOnline
@@ -125,7 +145,6 @@ class _ListingDetailViewState extends State<ListingDetailView> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Contactar vendedor
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: isOnline
@@ -156,8 +175,6 @@ class _ListingDetailViewState extends State<ListingDetailView> {
   }
 }
 
-// ── Error state con botón Retry ───────────────────────────────────────────────
-
 class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -177,10 +194,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(

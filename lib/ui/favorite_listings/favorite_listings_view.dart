@@ -174,7 +174,7 @@ class _EmptyState extends StatelessWidget {
           Icon(Icons.star_border_rounded, size: 72, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           const Text(
-            'No favorites yet',
+            'No hay favoritos aún',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -183,7 +183,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Tap the ★ on any listing to save it here.',
+            'Presiona la estrella en cualquier anuncio para guardarlo aquí!.',
             style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E)),
           ),
         ],
