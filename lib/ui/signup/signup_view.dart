@@ -309,7 +309,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           SizedBox(width: 6),
                           Text(
-                            'SCHOLASTIC',
+                            'University Marketplace',
                             style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
@@ -622,7 +622,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    '© 2024 SCHOLASTIC MEDIA GROUP',
+                    '© 2026 UNIVERSITY MARKETPLACE',
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
