@@ -38,7 +38,6 @@ class ListingRepository {
           cachedAt: cachedAt,
         );
       }
-      // Sin caché tampoco — relanzar el error original
       rethrow;
     }
   }
@@ -58,6 +57,7 @@ class ListingRepository {
   ListingSummary _toListingSummary(ListingDto dto) {
     return ListingSummary(
       id: dto.id,
+      sellerId: dto.sellerId,
       title: dto.title,
       price: dto.price,
       category: dto.categoryId.toString(),
