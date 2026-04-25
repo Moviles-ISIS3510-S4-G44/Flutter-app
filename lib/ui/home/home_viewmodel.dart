@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
@@ -16,6 +17,7 @@ class HomeViewModel extends ChangeNotifier {
   final InteractionRepository _interactionRepository;
   final CategoryApiService _categoryApiService;
   final LocationRepository _locationRepository;
+  final RecentlyViewedRepository _recentlyViewedRepository;
 
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
 
@@ -25,15 +27,17 @@ class HomeViewModel extends ChangeNotifier {
     required InteractionRepository interactionRepository,
     required CategoryApiService categoryApiService,
     required LocationRepository locationRepository,
+    required RecentlyViewedRepository recentlyViewedRepository,
   })  : _listingRepository = listingRepository ?? ListingRepository(),
         _interactionRepository = interactionRepository,
         _categoryApiService = categoryApiService,
-        _locationRepository = locationRepository {
+        _locationRepository = locationRepository,
+        _recentlyViewedRepository = recentlyViewedRepository {
     loadListings();
     _subscribeToConnectivity();
   }
 
-  // Estado 
+  // ── Estado ─────────────────────────────────────────────────────────────────
 
   bool isLoading = false;
   String? errorMessage;
@@ -45,20 +49,17 @@ class HomeViewModel extends ChangeNotifier {
   List<ListingSummary> recentListings = [];
   List<ListingSummary> filteredListings = [];
   List<ListingSummary> topInteractionListings = [];
+  List<ListingSummary> recentlyViewed = [];
   Map<String, double> distances = {};
 
-  /// true cuando los datos vienen del caché local (sin conexión)
   bool isShowingCachedData = false;
-
-  /// Momento en que se guardó el caché que se está mostrando
   DateTime? cachedAt;
 
   List<ListingSummary> get displayedListings =>
       searchQuery.isEmpty ? recentListings : filteredListings;
 
-  // Connectivity listener 
+  // Connectivity listener
 
-  /// Se suscribe al stream de conectividad. Cuando el dispositivo pasa de offline a online, recarga automáticamente para reemplazar el caché.
   void _subscribeToConnectivity() {
     _connectivitySubscription =
         connectivityService.statusStream.listen((status) {
@@ -75,7 +76,7 @@ class HomeViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  // Load 
+  // Load
 
   Future<void> loadListings() async {
     isLoading = true;
@@ -107,6 +108,7 @@ class HomeViewModel extends ChangeNotifier {
       recentListings = [];
       filteredListings = [];
       topInteractionListings = [];
+      recentlyViewed = [];
       distances = {};
       isShowingCachedData = false;
       cachedAt = null;
@@ -118,6 +120,7 @@ class HomeViewModel extends ChangeNotifier {
     await Future.wait([
       _loadTopInteractions(),
       _loadDistances(),
+      _loadRecentlyViewed(),
     ]);
 
     isLoading = false;
@@ -134,6 +137,22 @@ class HomeViewModel extends ChangeNotifier {
       debugPrint('Failed to load top interactions: $error');
       topInteractionListings = [];
     }
+  }
+
+  Future<void> _loadRecentlyViewed() async {
+    try {
+      recentlyViewed = await _recentlyViewedRepository.getAll();
+    } catch (e) {
+      debugPrint('HomeViewModel: failed to load recently viewed: $e');
+      recentlyViewed = [];
+    }
+  }
+
+  /// Refresca solo la sección de vistos recientemente.
+  /// Se llama al volver del detalle de un listing.
+  Future<void> refreshRecentlyViewed() async {
+    await _loadRecentlyViewed();
+    notifyListeners();
   }
 
   Future<void> _loadDistances() async {
