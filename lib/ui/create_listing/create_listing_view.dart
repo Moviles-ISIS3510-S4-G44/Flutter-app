@@ -86,7 +86,7 @@ class CreateListingView extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: AppBottomNavBar(
-        selectedIndex: 2,
+        selectedIndex: 1,
         onTap: (index) => _onNavTap(context, index),
       ),
     );
