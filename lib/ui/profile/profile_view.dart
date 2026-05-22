@@ -7,6 +7,7 @@ import 'package:marketplace_flutter_application/ui/connectivity/connectivity_mod
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_view.dart';
 import 'package:marketplace_flutter_application/ui/profile/profile_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:marketplace_flutter_application/models/ratings/user_ratings.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -28,7 +29,6 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAuthAndLoadProfile();
     });
@@ -47,7 +47,6 @@ class _ProfileViewState extends State<ProfileView> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-
       context.go('/login');
       return;
     }
@@ -61,21 +60,11 @@ class _ProfileViewState extends State<ProfileView> {
 
   void _onBottomNavTap(int index) {
     switch (index) {
-      case 0:
-        context.go('/Home');
-        break;
-      case 1:
-        context.go('/Sell');
-        break;
-      case 2:
-        context.go('/cart');
-        break;
-      case 3:
-        context.go('/messages');
-        break;
-      case 4:
-        context.go('/profile');
-        break;
+      case 0: context.go('/Home'); break;
+      case 1: context.go('/Sell'); break;
+      case 2: context.go('/cart'); break;
+      case 3: context.go('/messages'); break;
+      case 4: context.go('/profile'); break;
     }
   }
 
@@ -87,9 +76,7 @@ class _ProfileViewState extends State<ProfileView> {
     if (_checkingAuth) {
       return const Scaffold(
         backgroundColor: background,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -160,6 +147,10 @@ class _ProfileViewState extends State<ProfileView> {
                               ],
                             ),
                           ),
+                          if (viewModel.userRatings != null) ...[
+                            const SizedBox(height: 16),
+                            _RatingsCard(ratings: viewModel.userRatings!),
+                          ],
                           const SizedBox(height: 16),
                           _ProfileOptionTile(
                             icon: Icons.person_outline,
@@ -178,8 +169,7 @@ class _ProfileViewState extends State<ProfileView> {
                           _ProfileOptionTile(
                             icon: Icons.star_outline_rounded,
                             title: 'Productos Favoritos',
-                            subtitle:
-                                'Productos que has marcado como favoritos',
+                            subtitle: 'Productos que has marcado como favoritos',
                             onTap: () => context.push('/favorite-listings'),
                           ),
                           const SizedBox(height: 12),
@@ -237,8 +227,10 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
-}
+} // ← cierra _ProfileViewState
 
+
+// Widgets de soporte 
 class _ProfileOptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -310,6 +302,160 @@ class _ProfileOptionTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+} 
+
+
+class _RatingsCard extends StatelessWidget {
+  final UserRatings ratings;
+
+  const _RatingsCard({required this.ratings});
+
+  static const Color textPrimary = Color(0xFF1A1A1A);
+  static const Color textSecondary = Color(0xFF6E6E6E);
+  static const Color borderColor = Color(0xFFE5E7EB);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Mi reputación como vendedor',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                ratings.average.toStringAsFixed(1),
+                style: const TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _StarRow(score: ratings.average),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${ratings.total} ${ratings.total == 1 ? 'calificación' : 'calificaciones'}',
+                    style: const TextStyle(fontSize: 13, color: textSecondary),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (ratings.total > 0) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            for (int star = 5; star >= 1; star--)
+              _DistributionRow(
+                star: star,
+                count: ratings.distribution[star] ?? 0,
+                total: ratings.total,
+              ),
+          ],
+          if (ratings.total == 0) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Aún no tienes calificaciones como vendedor.',
+              style: TextStyle(fontSize: 13, color: textSecondary),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+
+class _StarRow extends StatelessWidget {
+  final double score;
+  const _StarRow({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(5, (i) {
+        final fill = (score - i).clamp(0.0, 1.0);
+        if (fill >= 1.0) {
+          return const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 20);
+        } else if (fill > 0.0) {
+          return const Icon(Icons.star_half_rounded, color: Color(0xFFFFD700), size: 20);
+        } else {
+          return const Icon(Icons.star_outline_rounded, color: Color(0xFFD1D5DB), size: 20);
+        }
+      }),
+    );
+  }
+} // ← cierra _StarRow
+
+
+class _DistributionRow extends StatelessWidget {
+  final int star;
+  final int count;
+  final int total;
+
+  const _DistributionRow({
+    required this.star,
+    required this.count,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = total > 0 ? count / total : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Text('$star', style: const TextStyle(fontSize: 12, color: Color(0xFF6E6E6E))),
+          const SizedBox(width: 4),
+          const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 14),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: fraction,
+                minHeight: 8,
+                backgroundColor: const Color(0xFFF3F4F6),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 24,
+            child: Text(
+              '$count',
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6E6E6E)),
+            ),
+          ),
+        ],
       ),
     );
   }
