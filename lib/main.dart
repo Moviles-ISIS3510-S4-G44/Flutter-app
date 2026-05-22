@@ -18,13 +18,15 @@ import 'package:marketplace_flutter_application/data/repositories/auth_repositor
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/ratings_repository.dart';
 
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/data/services/interaction_service.dart';
 import 'package:marketplace_flutter_application/data/services/location_service.dart';
-import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/services/ratings_service.dart';
 import 'package:marketplace_flutter_application/data/storage/listing_cache_storage.dart';
 
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
@@ -72,8 +74,10 @@ class MyApp extends StatelessWidget {
         ),
 
         ChangeNotifierProvider<ProfileViewModel>(
-          create: (context) =>
-              ProfileViewModel(repository: context.read<AuthRepository>()),
+          create: (context) => ProfileViewModel(
+            repository: context.read<AuthRepository>(),
+            ratingsRepository: context.read<RatingsRepository>(),
+          ),
         ),
 
         Provider<InteractionService>(create: (_) => InteractionService()),
@@ -154,6 +158,16 @@ class MyApp extends StatelessWidget {
             categoryApiService: context.read<CategoryApiService>(),
             locationRepository: context.read<LocationRepository>(),
             recentlyViewedRepository: context.read<RecentlyViewedRepository>(),
+          ),
+        ),
+
+        // Ratings
+        Provider<RatingsService>(create: (_) => RatingsService()),
+
+        Provider<RatingsRepository>(
+          create: (context) => RatingsRepository(
+            service: context.read<RatingsService>(),
+            authRepository: context.read<AuthRepository>(),
           ),
         ),
 
