@@ -19,6 +19,13 @@ class RatingItemDto {
       purchasedAt: DateTime.parse(json['purchased_at'] as String),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'purchase_id': purchaseId,
+        'buyer_id': buyerId,
+        'score': score,
+        'purchased_at': purchasedAt.toIso8601String(),
+      };
 }
 
 class UserRatingsDto {
@@ -44,4 +51,11 @@ class UserRatingsDto {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'user_id': userId,
+        'average': average,
+        'total': total,
+        'ratings': ratings.map((r) => r.toJson()).toList(),
+      };
 }
