@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:marketplace_flutter_application/data/dtos/ratings/rating_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/ratings/user_ratings_dto.dart';
 
 class RatingsCacheStorage {
   static const Duration _ttl = Duration(minutes: 10);
