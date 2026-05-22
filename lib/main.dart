@@ -30,6 +30,7 @@ import 'package:marketplace_flutter_application/data/services/ratings_service.da
 import 'package:marketplace_flutter_application/data/storage/listing_cache_storage.dart';
 
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
+import 'package:marketplace_flutter_application/data/storage/ratings_cache_storage.dart';
 
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
@@ -73,12 +74,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        ChangeNotifierProvider<ProfileViewModel>(
-          create: (context) => ProfileViewModel(
-            repository: context.read<AuthRepository>(),
-            ratingsRepository: context.read<RatingsRepository>(),
-          ),
-        ),
+
 
         Provider<InteractionService>(create: (_) => InteractionService()),
 
@@ -107,12 +103,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── Cart ───────────────────────────────────────────────────────────
+        //  Cart
         ChangeNotifierProvider<CartViewModel>(
           create: (_) => CartViewModel(),
         ),
 
-        // ── Favorites ──────────────────────────────────────────────────────
         Provider<FavoritesRepository>(create: (_) => FavoritesRepository()),
 
         ChangeNotifierProvider<FavoritesViewModel>(
@@ -121,7 +116,7 @@ class MyApp extends StatelessWidget {
           )..loadFavorites(),
         ),
 
-        // ── Recently Viewed (LRU) ──────────────────────────────────────────
+        // Recently Viewed (LRU)
         Provider<RecentlyViewedStorage>(create: (_) => RecentlyViewedStorage()),
 
         Provider<RecentlyViewedRepository>(
@@ -130,7 +125,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── My Listings ────────────────────────────────────────────────────
         ChangeNotifierProvider<MyListingsViewModel>(
           create: (context) => MyListingsViewModel(
             listingRepository: context.read<ListingRepository>(),
@@ -138,7 +132,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── Auth ViewModels ────────────────────────────────────────────────
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
             connectivityService: context.read<ConnectivityService>(),
@@ -161,13 +154,33 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // Ratings
+        Provider<RatingsRepository>(
+          create: (context) => RatingsRepository(
+            service: context.read<RatingsService>(),
+            cache: context.read<RatingsCacheStorage>(),
+            authRepository: context.read<AuthRepository>(),
+            connectivity: context.read<ConnectivityService>(),
+          ),
+        ),
+
         Provider<RatingsService>(create: (_) => RatingsService()),
+
+        Provider<RatingsCacheStorage>(create: (_) => RatingsCacheStorage()),
 
         Provider<RatingsRepository>(
           create: (context) => RatingsRepository(
             service: context.read<RatingsService>(),
+            cache: context.read<RatingsCacheStorage>(),
             authRepository: context.read<AuthRepository>(),
+            connectivity: context.read<ConnectivityService>(),
+          ),
+        ),
+
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (context) => ProfileViewModel(
+            repository: context.read<AuthRepository>(),
+            ratingsRepository: context.read<RatingsRepository>(),
+            connectivityService: context.read<ConnectivityService>(),
           ),
         ),
 

@@ -56,6 +56,14 @@ class _ProfileViewState extends State<ProfileView> {
     });
 
     await context.read<ProfileViewModel>().loadProfile();
+    if (!mounted) return;
+    context.read<ProfileViewModel>().startConnectivityListener();
+  }
+
+  String _formatCachedAt(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 
   void _onBottomNavTap(int index) {
@@ -101,120 +109,173 @@ class _ProfileViewState extends State<ProfileView> {
           Expanded(
             child: viewModel.isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : SafeArea(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: borderColor),
+                : RefreshIndicator(
+                    onRefresh: () => context.read<ProfileViewModel>().refresh(),
+                    color: accent,
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                        child: Column(
+                          children: [
+                            // Banner offline / stale
+                            if (viewModel.isStale && viewModel.cachedAt != null)
+                              Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF8C5),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: const Color(0xFFFFE600)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.wifi_off_rounded,
+                                        size: 16, color: Color(0xFF92400E)),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Sin conexión — datos del ${_formatCachedAt(viewModel.cachedAt!)}',
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF92400E)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            // Barra de progreso sutil mientras refresca
+                            if (viewModel.isRefreshing)
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 12),
+                                child: LinearProgressIndicator(
+                                  minHeight: 2,
+                                  backgroundColor: Colors.transparent,
+                                  color: accent,
+                                ),
+                              ),
+
+                            // Tarjeta de perfil
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: cardColor,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 38,
+                                    backgroundColor: accent.withOpacity(0.25),
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Text(
+                                    viewModel.currentUser?.name ?? 'Usuario',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: textPrimary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    viewModel.currentUser?.email ?? 'Sin correo',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: textSecondary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 38,
-                                  backgroundColor: accent.withOpacity(0.25),
-                                  child: const Icon(
-                                    Icons.person,
-                                    size: 40,
-                                    color: textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  viewModel.currentUser?.name ?? 'Usuario',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: textPrimary,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  viewModel.currentUser?.email ?? 'Sin correo',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: textSecondary,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (viewModel.userRatings != null) ...[
+
+                            // Tarjeta de ratings
+                            if (viewModel.ratings != null) ...[
+                              const SizedBox(height: 16),
+                              _RatingsCard(ratings: viewModel.ratings!),
+                            ],
+
                             const SizedBox(height: 16),
-                            _RatingsCard(ratings: viewModel.userRatings!),
-                          ],
-                          const SizedBox(height: 16),
-                          _ProfileOptionTile(
-                            icon: Icons.person_outline,
-                            title: 'Información personal',
-                            subtitle: 'Ver los detalles básicos de tu cuenta',
-                            onTap: () => context.push('/personal-information'),
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOptionTile(
-                            icon: Icons.shopping_bag_outlined,
-                            title: 'Mis productos',
-                            subtitle: 'Ver los productos que has publicado',
-                            onTap: () => context.push('/my-listings'),
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOptionTile(
-                            icon: Icons.star_outline_rounded,
-                            title: 'Productos Favoritos',
-                            subtitle: 'Productos que has marcado como favoritos',
-                            onTap: () => context.push('/favorite-listings'),
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOptionTile(
-                            icon: Icons.help_outline,
-                            title: 'Ayuda y soporte',
-                            subtitle: 'Soporte y preguntas frecuentes',
-                            onTap: () => context.push('/help'),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                await context.read<ProfileViewModel>().logout();
-                                if (!context.mounted) return;
-                                context.go('/login');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                elevation: 0,
-                              ),
-                              icon: const Icon(Icons.logout),
-                              label: const Text(
-                                'Log out',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                            _ProfileOptionTile(
+                              icon: Icons.person_outline,
+                              title: 'Información personal',
+                              subtitle: 'Ver los detalles básicos de tu cuenta',
+                              onTap: () =>
+                                  context.push('/personal-information'),
                             ),
-                          ),
-                          if (viewModel.errorMessage != null) ...[
                             const SizedBox(height: 12),
-                            Text(
-                              viewModel.errorMessage!,
-                              style: const TextStyle(color: Colors.red),
+                            _ProfileOptionTile(
+                              icon: Icons.shopping_bag_outlined,
+                              title: 'Mis productos',
+                              subtitle: 'Ver los productos que has publicado',
+                              onTap: () => context.push('/my-listings'),
                             ),
+                            const SizedBox(height: 12),
+                            _ProfileOptionTile(
+                              icon: Icons.star_outline_rounded,
+                              title: 'Productos Favoritos',
+                              subtitle:
+                                  'Productos que has marcado como favoritos',
+                              onTap: () =>
+                                  context.push('/favorite-listings'),
+                            ),
+                            const SizedBox(height: 12),
+                            _ProfileOptionTile(
+                              icon: Icons.help_outline,
+                              title: 'Ayuda y soporte',
+                              subtitle: 'Soporte y preguntas frecuentes',
+                              onTap: () => context.push('/help'),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  await context
+                                      .read<ProfileViewModel>()
+                                      .logout();
+                                  if (!context.mounted) return;
+                                  context.go('/login');
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                icon: const Icon(Icons.logout),
+                                label: const Text(
+                                  'Log out',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (viewModel.errorMessage != null) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                viewModel.errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -227,10 +288,8 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
-} // ← cierra _ProfileViewState
+}
 
-
-// Widgets de soporte 
 class _ProfileOptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -305,8 +364,7 @@ class _ProfileOptionTile extends StatelessWidget {
       ),
     );
   }
-} 
-
+}
 
 class _RatingsCard extends StatelessWidget {
   final UserRatings ratings;
@@ -359,7 +417,8 @@ class _RatingsCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${ratings.total} ${ratings.total == 1 ? 'calificación' : 'calificaciones'}',
-                    style: const TextStyle(fontSize: 13, color: textSecondary),
+                    style: const TextStyle(
+                        fontSize: 13, color: textSecondary),
                   ),
                 ],
               ),
@@ -389,7 +448,6 @@ class _RatingsCard extends StatelessWidget {
   }
 }
 
-
 class _StarRow extends StatelessWidget {
   final double score;
   const _StarRow({required this.score});
@@ -400,17 +458,19 @@ class _StarRow extends StatelessWidget {
       children: List.generate(5, (i) {
         final fill = (score - i).clamp(0.0, 1.0);
         if (fill >= 1.0) {
-          return const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 20);
+          return const Icon(Icons.star_rounded,
+              color: Color(0xFFFFD700), size: 20);
         } else if (fill > 0.0) {
-          return const Icon(Icons.star_half_rounded, color: Color(0xFFFFD700), size: 20);
+          return const Icon(Icons.star_half_rounded,
+              color: Color(0xFFFFD700), size: 20);
         } else {
-          return const Icon(Icons.star_outline_rounded, color: Color(0xFFD1D5DB), size: 20);
+          return const Icon(Icons.star_outline_rounded,
+              color: Color(0xFFD1D5DB), size: 20);
         }
       }),
     );
   }
-} // ← cierra _StarRow
-
+}
 
 class _DistributionRow extends StatelessWidget {
   final int star;
@@ -431,9 +491,12 @@ class _DistributionRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Text('$star', style: const TextStyle(fontSize: 12, color: Color(0xFF6E6E6E))),
+          Text('$star',
+              style: const TextStyle(
+                  fontSize: 12, color: Color(0xFF6E6E6E))),
           const SizedBox(width: 4),
-          const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 14),
+          const Icon(Icons.star_rounded,
+              color: Color(0xFFFFD700), size: 14),
           const SizedBox(width: 8),
           Expanded(
             child: ClipRRect(
@@ -442,7 +505,8 @@ class _DistributionRow extends StatelessWidget {
                 value: fraction,
                 minHeight: 8,
                 backgroundColor: const Color(0xFFF3F4F6),
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFFFFD700)),
               ),
             ),
           ),
@@ -452,7 +516,8 @@ class _DistributionRow extends StatelessWidget {
             child: Text(
               '$count',
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF6E6E6E)),
+              style: const TextStyle(
+                  fontSize: 12, color: Color(0xFF6E6E6E)),
             ),
           ),
         ],

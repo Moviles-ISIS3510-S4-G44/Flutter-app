@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/config/app_config.dart';
-import 'package:marketplace_flutter_application/data/dtos/ratings/rating_dto.dart';
+import 'package:marketplace_flutter_application/data/dtos/ratings/user_ratings_dto.dart';
 
 class RatingsService {
   final http.Client _client = http.Client();
