@@ -10,7 +10,6 @@ class RatingsService {
   final http.Client _client = http.Client();
   final String _baseUrl = AppConfig.apiBaseUrl;
 
-  /// Ratings del usuario autenticado (como vendedor).
   Future<UserRatingsDto> getMyRatings(String token) async {
     try {
       final response = await _client
@@ -34,7 +33,6 @@ class RatingsService {
     }
   }
 
-  /// Ratings de cualquier vendedor por ID (para ver el perfil de otro usuario).
   Future<UserRatingsDto> getRatingsForUser(String userId, String token) async {
     try {
       final response = await _client
@@ -60,20 +58,29 @@ class RatingsService {
 
   Future<void> rateSeller({
     required String purchaseId,
-    required int score,        // 1–5
+    required int score,
     required String token,
   }) async {
-    final response = await _client.patch(
-      Uri.parse('$_baseUrl/purchases/$purchaseId/rate-seller'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'rating': score}),
-    ).timeout(const Duration(seconds: 10));
+    try {
+      final response = await _client
+          .patch(
+            Uri.parse('$_baseUrl/purchases/$purchaseId/rate-seller'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'rating': score}),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode != 200) {
-      throw Exception('Error al calificar: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        throw Exception('Error al calificar: ${response.statusCode}');
+      }
+    } on TimeoutException {
+      throw Exception('Timeout al enviar calificación.');
+    } catch (e) {
+      debugPrint('RatingsService.rateSeller error: $e');
+      rethrow;
     }
   }
 }
