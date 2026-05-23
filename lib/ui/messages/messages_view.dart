@@ -130,11 +130,11 @@ class _MessagesContent extends StatelessWidget {
     if (viewModel.errorMessage != null) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Text(
             viewModel.errorMessage!,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF666666),
             ),

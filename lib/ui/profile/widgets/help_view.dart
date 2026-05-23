@@ -79,15 +79,15 @@ class HelpView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: const Color(0xFFFFE680)),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    const Icon(Icons.help_outline_rounded,
+                    Icon(Icons.help_outline_rounded,
                         size: 36, color: textPrimary),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'Preguntas Frecuentes',
                             style: TextStyle(
@@ -179,8 +179,8 @@ class HelpView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: borderColor),
                         ),
-                        child: Row(
-                          children: const [
+                        child: const Row(
+                          children: [
                             Icon(Icons.email_outlined,
                                 size: 20, color: textPrimary),
                             SizedBox(width: 10),

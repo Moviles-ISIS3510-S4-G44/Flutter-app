@@ -180,7 +180,7 @@ class _CategoryDropdownField extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(canvasColor: Colors.white),
       child: DropdownButtonFormField<Category>(
-        value: viewModel.selectedCategory,
+        initialValue: viewModel.selectedCategory,
         isExpanded: true,
         dropdownColor: Colors.white,
         icon: const Icon(

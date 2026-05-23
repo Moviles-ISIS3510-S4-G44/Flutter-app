@@ -17,7 +17,7 @@ class _ConnectivityViewState extends State<ConnectivityView> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: Color(0xFFFFD700),
+      color: const Color(0xFFFFD700),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

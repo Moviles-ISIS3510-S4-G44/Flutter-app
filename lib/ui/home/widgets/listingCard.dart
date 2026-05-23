@@ -39,12 +39,9 @@ class ListingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favVm = context.watch<FavoritesViewModel>();
-    final isFav = favVm.isFavorite(listing.id);
-
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: const BorderRadius.all(Radius.circular(4)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -63,9 +60,9 @@ class ListingCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                       errorWidget: (context, url, error) {
-                        return Container(
-                          color: const Color(0xFFF0F0F0),
-                          child: const Center(
+                        return const ColoredBox(
+                          color: Color(0xFFF0F0F0),
+                          child: Center(
                             child: Icon(
                               Icons.image_outlined,
                               size: 32,
@@ -77,61 +74,68 @@ class ListingCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Botón favorito
+                  // Botón favorito — Consumer scope para evitar rebuild de toda la card
                   Positioned(
                     top: 8,
                     left: 8,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        favVm.toggle(
-                          FavoriteListing(
-                            id: listing.id,
-                            title: listing.title,
-                            price: listing.price,
-                            imageUrl: listing.imageUrl,
-                            category: listing.category,
-                            location: listing.location,
+                    child: Consumer<FavoritesViewModel>(
+                      builder: (context, favVm, _) {
+                        final isFav = favVm.isFavorite(listing.id);
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            favVm.toggle(
+                              FavoriteListing(
+                                id: listing.id,
+                                title: listing.title,
+                                price: listing.price,
+                                imageUrl: listing.imageUrl,
+                                category: listing.category,
+                                location: listing.location,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: const BoxDecoration(
+                              color: Color(0xEBFFFFFF), // Colors.white.withOpacity(0.92)
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFav ? Icons.star : Icons.star_border,
+                              size: 17,
+                              color: isFav
+                                  ? const Color(0xFFFFD700)
+                                  : const Color(0xFF9E9E9E),
+                            ),
                           ),
                         );
                       },
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.92),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isFav ? Icons.star : Icons.star_border,
-                          size: 17,
-                          color: isFav
-                              ? const Color(0xFFFFD700)
-                              : const Color(0xFF9E9E9E),
-                        ),
-                      ),
                     ),
                   ),
 
                   if (showFeaturedBadge)
-                    Positioned(
+                    const Positioned(
                       top: 8,
                       right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
+                      child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF4D21F),
-                          borderRadius: BorderRadius.circular(999),
+                          color: Color(0xFFF4D21F),
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
                         ),
-                        child: const Text(
-                          'Featured',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1F1F1F),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: Text(
+                            'Featured',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F1F1F),
+                            ),
                           ),
                         ),
                       ),
@@ -141,33 +145,35 @@ class ListingCard extends StatelessWidget {
                     Positioned(
                       bottom: 8,
                       left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(
+                          color: Color(0x8C000000), // Colors.black.withOpacity(0.55)
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.55),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              size: 11,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              _formatDistance(distanceKm!),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                size: 11,
                                 color: Colors.white,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 3),
+                              Text(
+                                _formatDistance(distanceKm!),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

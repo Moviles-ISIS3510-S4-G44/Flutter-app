@@ -20,8 +20,8 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/login',
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => LoginPage()),
-      GoRoute(path: '/signup', builder: (context, state) => SignUpPage()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/signup', builder: (context, state) => const SignUpPage()),
       GoRoute(path: '/Home', builder: (context, state) => const HomeView()),
       GoRoute(
         path: '/Sell',
