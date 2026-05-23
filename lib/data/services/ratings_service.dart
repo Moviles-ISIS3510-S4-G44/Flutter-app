@@ -57,4 +57,23 @@ class RatingsService {
       rethrow;
     }
   }
+
+  Future<void> rateSeller({
+    required String purchaseId,
+    required int score,        // 1–5
+    required String token,
+  }) async {
+    final response = await _client.patch(
+      Uri.parse('$_baseUrl/purchases/$purchaseId/rate-seller'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'rating': score}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al calificar: ${response.statusCode}');
+    }
+  }
 }
