@@ -310,11 +310,11 @@ class _CartSummary extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          SizedBox(
+                  SizedBox(
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: cart.items.isEmpty
+              onPressed: cart.items.isEmpty || cart.isCheckingOut
                 ? null
                 : () async {
                     final authRepository = context.read<AuthRepository>();
@@ -369,13 +369,22 @@ class _CartSummary extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'Checkout',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: cart.isCheckingOut
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Checkout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
             ),
           ),
         ],

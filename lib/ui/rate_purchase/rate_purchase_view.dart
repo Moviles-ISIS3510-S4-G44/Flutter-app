@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:marketplace_flutter_application/data/repositories/ratings_repository.dart';
 
 class RatePurchasesView extends StatefulWidget {
-  /// Lista de compras completadas: [{purchaseId, listingTitle, sellerName}]
-  final List<Map<String, String>> purchases;
+  /// Lista de compras completadas: maps enriquecidos (purchaseId, listingId, listingTitle, sellerId, sellerName, priceAtPurchase, purchasedAt)
+  final List<Map<String, dynamic>> purchases;
 
   const RatePurchasesView({super.key, required this.purchases});
 
@@ -30,7 +30,7 @@ class _RatePurchasesViewState extends State<RatePurchasesView> {
   @override
   void initState() {
     super.initState();
-    _scores = {for (final p in widget.purchases) p['purchaseId']!: null};
+    _scores = {for (final p in widget.purchases) p['purchaseId'].toString(): null};
   }
 
   Future<void> _submitAll() async {

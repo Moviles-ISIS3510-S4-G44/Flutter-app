@@ -100,7 +100,3 @@ class MessagesViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-
-  bool get isEmptyState =>
-      !isLoading && errorMessage == null && conversations.isEmpty;
-}
