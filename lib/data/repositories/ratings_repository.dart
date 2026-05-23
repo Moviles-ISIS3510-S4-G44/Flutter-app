@@ -93,4 +93,18 @@ class RatingsRepository {
           .toList(),
     );
   }
+
+  Future<void> rateSeller({
+    required String purchaseId,
+    required int score,
+  }) async {
+    final token = await _authRepository.getAccessToken();
+    if (token == null) throw Exception('Sin sesión activa');
+    await _service.rateSeller(
+      purchaseId: purchaseId,
+      score: score,
+      token: token,
+    );
+  }
+  
 }
