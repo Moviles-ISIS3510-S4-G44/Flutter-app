@@ -269,7 +269,9 @@ class CreateListingViewModel extends ChangeNotifier {
         location: location!,
       );
 
-      await _listingRepository.createListing(request);
+      final created = await _listingRepository.createListing(request);
+      
+      await _listingRepository.publishListing(created.id);
 
       submitSuccess = true;
       _resetForm();

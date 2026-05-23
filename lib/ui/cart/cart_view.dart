@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:marketplace_flutter_application/ui/cart/cart_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
 
 class CartView extends StatelessWidget {
   const CartView({super.key});
@@ -15,19 +16,11 @@ class CartView extends StatelessWidget {
 
   void _onNavTap(BuildContext context, int index) {
     switch (index) {
-      case 0:
-        context.go('/Home');
-        break;
-      case 1:
-        context.go('/Sell');
-        break;
-      case 2:
-        break; // ya estamos en cart
-      case 3:
-        break;
-      case 4:
-        context.go('/profile');
-        break;
+      case 0: context.go('/Home'); break;
+      case 1: context.go('/Sell'); break;
+      case 2: break;
+      case 3: break;
+      case 4: context.go('/profile'); break;
     }
   }
 
@@ -93,15 +86,15 @@ class CartView extends StatelessWidget {
                         title: listing.title,
                         price: _formatPrice(listing.price),
                         condition: listing.condition,
-                        onTap: () =>
-                            context.push('/listing/${listing.id}'),
+                        onTap: () => context.push('/listing/${listing.id}'),
                         onRemove: () => cart.remove(listing.id),
                       );
                     },
                   ),
                 ),
+                // ← cart se pasa explícitamente aquí
                 _CartSummary(
-                  itemCount: cart.count,
+                  cart: cart,
                   total: _formatPrice(cart.totalPrice),
                 ),
               ],
@@ -117,9 +110,7 @@ class CartView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Clear cart'),
         content: const Text(
             'Are you sure you want to remove all items from your cart?'),
@@ -133,10 +124,8 @@ class CartView extends StatelessWidget {
               cart.clear();
               Navigator.of(ctx).pop();
             },
-            child: const Text(
-              'Clear',
-              style: TextStyle(color: Colors.redAccent),
-            ),
+            child: const Text('Clear',
+                style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -144,7 +133,7 @@ class CartView extends StatelessWidget {
   }
 }
 
-// Empty state
+// Empty state 
 
 class _EmptyState extends StatelessWidget {
   @override
@@ -206,7 +195,6 @@ class _CartItemTile extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Imagen
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: SizedBox(
@@ -226,7 +214,6 @@ class _CartItemTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +257,6 @@ class _CartItemTile extends StatelessWidget {
                   ],
                 ),
               ),
-              // Botón quitar
               IconButton(
                 onPressed: onRemove,
                 icon: const Icon(Icons.delete_outline),
@@ -285,13 +271,13 @@ class _CartItemTile extends StatelessWidget {
   }
 }
 
-// Cart summary 
+// Cart summary
 
 class _CartSummary extends StatelessWidget {
-  final int itemCount;
+  final CartViewModel cart;
   final String total;
 
-  const _CartSummary({required this.itemCount, required this.total});
+  const _CartSummary({required this.cart, required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -299,9 +285,7 @@ class _CartSummary extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFE5E7EB)),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
       ),
       child: Column(
         children: [
@@ -309,7 +293,7 @@ class _CartSummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                '${cart.count} ${cart.count == 1 ? 'item' : 'items'}',
                 style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF6E6E6E),
@@ -330,13 +314,53 @@ class _CartSummary extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Checkout próximamente'),
-                  ),
-                );
-              },
+              onPressed: cart.items.isEmpty
+                ? null
+                : () async {
+                    final authRepository = context.read<AuthRepository>();
+                    final token = await authRepository.getAccessToken();
+                    if (!context.mounted) return;
+
+                    if (token == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Debes iniciar sesión primero.')),
+                      );
+                      return;
+                    }
+
+                    try {
+                      final result = await context
+                          .read<CartViewModel>()
+                          .checkout(token);
+
+                      if (!context.mounted) return;
+
+                      // Mostrar errores específicos si los hubo
+                      if (result.hasFailures) {
+                        final msg = result.failed
+                            .map((e) => '• ${e.listingTitle}: ${e.reason}')
+                            .join('\n');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(msg),
+                            backgroundColor: Colors.redAccent,
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
+
+                      // Navegar a ratings solo si algo se compró
+                      if (result.hasSuccesses) {
+                        context.push('/rate-purchases', extra: result.succeeded);
+                      }
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error inesperado: $e')),
+                      );
+                    }
+                  },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3483FA),
                 foregroundColor: Colors.white,

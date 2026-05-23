@@ -18,16 +18,18 @@ import 'package:marketplace_flutter_application/data/repositories/auth_repositor
 import 'package:marketplace_flutter_application/data/repositories/category_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/repositories/ratings_repository.dart';
 
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/data/services/interaction_service.dart';
 import 'package:marketplace_flutter_application/data/services/location_service.dart';
-import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
+import 'package:marketplace_flutter_application/data/services/ratings_service.dart';
 import 'package:marketplace_flutter_application/data/storage/listing_cache_storage.dart';
-
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
+import 'package:marketplace_flutter_application/data/storage/ratings_cache_storage.dart';
 
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
@@ -40,7 +42,6 @@ import 'ui/router/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-
   runApp(const MyApp());
 }
 
@@ -71,11 +72,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        ChangeNotifierProvider<ProfileViewModel>(
-          create: (context) =>
-              ProfileViewModel(repository: context.read<AuthRepository>()),
-        ),
-
         Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
@@ -103,12 +99,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── Cart ───────────────────────────────────────────────────────────
         ChangeNotifierProvider<CartViewModel>(
           create: (_) => CartViewModel(),
         ),
 
-        // ── Favorites ──────────────────────────────────────────────────────
         Provider<FavoritesRepository>(create: (_) => FavoritesRepository()),
 
         ChangeNotifierProvider<FavoritesViewModel>(
@@ -117,7 +111,6 @@ class MyApp extends StatelessWidget {
           )..loadFavorites(),
         ),
 
-        // ── Recently Viewed (LRU) ──────────────────────────────────────────
         Provider<RecentlyViewedStorage>(create: (_) => RecentlyViewedStorage()),
 
         Provider<RecentlyViewedRepository>(
@@ -126,7 +119,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── My Listings ────────────────────────────────────────────────────
         ChangeNotifierProvider<MyListingsViewModel>(
           create: (context) => MyListingsViewModel(
             listingRepository: context.read<ListingRepository>(),
@@ -134,7 +126,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // ── Auth ViewModels ────────────────────────────────────────────────
         ChangeNotifierProvider<LoginViewModel>(
           create: (context) => LoginViewModel(
             connectivityService: context.read<ConnectivityService>(),
@@ -157,8 +148,31 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        // Ratings + Profile
+        Provider<RatingsService>(create: (_) => RatingsService()),
+
+        Provider<RatingsCacheStorage>(create: (_) => RatingsCacheStorage()),
+
+        Provider<RatingsRepository>(
+          create: (context) => RatingsRepository(
+            service: context.read<RatingsService>(),
+            cache: context.read<RatingsCacheStorage>(),
+            authRepository: context.read<AuthRepository>(),
+            connectivity: context.read<ConnectivityService>(),
+          ),
+        ),
+
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (context) => ProfileViewModel(
+            repository: context.read<AuthRepository>(),
+            ratingsRepository: context.read<RatingsRepository>(),
+            connectivityService: context.read<ConnectivityService>(),
+          ),
+        ),
+
         Provider<CategoryRepository>(create: (_) => CategoryRepository()),
         Provider<ImageUploadRepository>(create: (_) => ImageUploadRepository()),
+
         Provider<ChatService>(
           create: (_) => ChatService(baseUrl: dotenv.env['API_BASE_URL']!),
         ),
@@ -172,6 +186,7 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               MessagesViewModel(chatRepository: context.read<ChatRepository>()),
         ),
+
         ChangeNotifierProvider<CreateListingViewModel>(
           create: (context) => CreateListingViewModel(
             connectivityService: context.read<ConnectivityService>(),

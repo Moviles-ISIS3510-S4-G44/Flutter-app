@@ -47,6 +47,10 @@ class ListingRepository {
     return _toListingDetail(listingDto);
   }
 
+  Future<void> publishListing(String listingId) async {
+    await _listingApiService.updateListingStatus(listingId, 'published');
+  }
+
   Future<ListingDetail> getListingById(String listingId) async {
     final listingDto = await _listingApiService.getListingById(listingId);
     return _toListingDetail(listingDto);
