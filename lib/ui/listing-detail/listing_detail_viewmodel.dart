@@ -172,6 +172,8 @@ class ListingDetailViewModel extends ChangeNotifier {
       category: result.categoryId,
       imageUrl: result.images.isNotEmpty ? result.images.first : '',
       location: result.location,
+      description: result.description,
+      condition: result.condition,
     );
 
     _recentlyViewedRepository
