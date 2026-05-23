@@ -20,6 +20,7 @@ class ChatDetailViewModel extends ChangeNotifier {
 
   bool isLoading = false;
   bool isSending = false;
+  bool _isSyncing = false;
   String? errorMessage;
 
   String? currentUserId;
@@ -54,6 +55,7 @@ class ChatDetailViewModel extends ChangeNotifier {
     }
   }
 
+  /// Carga el chat: primero desde caché, luego sincroniza con API
   Future<void> loadChat() async {
     isLoading = true;
     errorMessage = null;
@@ -63,25 +65,49 @@ class ChatDetailViewModel extends ChangeNotifier {
       final token = await _getToken();
       currentUserId = _extractUserIdFromToken(token);
 
-      conversation = await _chatRepository.getConversation(
-        accessToken: token,
-        conversationId: conversationId,
-      );
+      // Cargar desde caché primero
+      try {
+        messages = await _chatRepository.getCachedMessages(conversationId);
+        messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
+      } catch (_) {
+        // Si no hay caché, continuar
+      }
 
-      messages = await _chatRepository.getMessages(
-        accessToken: token,
-        conversationId: conversationId,
-      );
+      // Sincronizar con API en background
+      _isSyncing = true;
+      try {
+        conversation = await _chatRepository.getConversation(
+          accessToken: token,
+          conversationId: conversationId,
+        );
 
-      messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
+        messages = await _chatRepository.getMessages(
+          accessToken: token,
+          conversationId: conversationId,
+        );
+
+        messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
+        errorMessage = null; // Limpiar error si la sincronización funciona
+      } catch (syncError) {
+        // Si falla la sincronización pero hay caché, mostrar advertencia suave
+        if (messages.isEmpty) {
+          errorMessage = 'Offline: Using cached messages';
+        } else {
+          debugPrint('Sync error (but cached data available): $syncError');
+        }
+      } finally {
+        _isSyncing = false;
+      }
     } catch (error) {
       errorMessage = error.toString();
+      messages = [];
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Envía un mensaje al servidor
   Future<void> sendMessage(String text) async {
     final cleanText = text.trim();
 
@@ -116,4 +142,7 @@ class ChatDetailViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Indica si está sincronizando en background
+  bool get isSyncing => _isSyncing;
 }

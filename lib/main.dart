@@ -30,6 +30,7 @@ import 'package:marketplace_flutter_application/data/services/ratings_service.da
 import 'package:marketplace_flutter_application/data/storage/listing_cache_storage.dart';
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/storage/ratings_cache_storage.dart';
+import 'package:marketplace_flutter_application/data/storage/chat_local_storage.dart';
 
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
@@ -200,9 +201,15 @@ class MyApp extends StatelessWidget {
           create: (_) => ChatService(baseUrl: dotenv.env['API_BASE_URL']!),
         ),
 
+        Provider<ChatLocalStorage>(
+          create: (_) => ChatLocalStorage(),
+        ),
+
         Provider<ChatRepository>(
-          create: (context) =>
-              ChatRepository(chatService: context.read<ChatService>()),
+          create: (context) => ChatRepository(
+            chatService: context.read<ChatService>(),
+            localStorage: context.read<ChatLocalStorage>(),
+          ),
         ),
 
         ChangeNotifierProvider<MessagesViewModel>(

@@ -10,9 +10,11 @@ class MessagesViewModel extends ChangeNotifier {
   }) : _chatRepository = chatRepository;
 
   bool isLoading = false;
+  bool _isSyncing = false;
   String? errorMessage;
   List<ChatConversation> conversations = [];
 
+  /// Carga conversaciones: primero desde caché, luego intenta sincronizar con API
   Future<void> loadConversations({
     required String accessToken,
   }) async {
@@ -33,9 +35,26 @@ class MessagesViewModel extends ChangeNotifier {
     try {
       debugPrint('CHAT TOKEN VALID: ${cleanToken.substring(0, 12)}...');
 
-      conversations = await _chatRepository.getConversations(
-        accessToken: cleanToken,
-      );
+      // Cargar desde caché primero
+      conversations = await _chatRepository.getCachedConversations();
+
+      // Intentar sincronizar con API en background
+      _isSyncing = true;
+      try {
+        conversations = await _chatRepository.getConversations(
+          accessToken: cleanToken,
+        );
+        errorMessage = null; // Limpiar error si la sincronización funciona
+      } catch (syncError) {
+        // Si falla la sincronización pero hay caché, mostrar advertencia suave
+        if (conversations.isEmpty) {
+          errorMessage = 'Offline: Using cached conversations';
+        } else {
+          debugPrint('Sync error (but cached data available): $syncError');
+        }
+      } finally {
+        _isSyncing = false;
+      }
     } catch (error) {
       conversations = [];
       errorMessage = error.toString();
@@ -45,11 +64,15 @@ class MessagesViewModel extends ChangeNotifier {
     }
   }
 
+  /// Recarga conversaciones desde el API, mostrando spinner
   Future<void> refreshConversations({
     required String accessToken,
   }) async {
     await loadConversations(accessToken: accessToken);
   }
+
+  /// Indica si está sincronizando en background
+  bool get isSyncing => _isSyncing;
 
   void clearError() {
     errorMessage = null;
