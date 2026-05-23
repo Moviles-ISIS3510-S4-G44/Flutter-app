@@ -28,7 +28,6 @@ import 'package:marketplace_flutter_application/data/services/interaction_servic
 import 'package:marketplace_flutter_application/data/services/location_service.dart';
 import 'package:marketplace_flutter_application/data/services/ratings_service.dart';
 import 'package:marketplace_flutter_application/data/storage/listing_cache_storage.dart';
-
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/storage/ratings_cache_storage.dart';
 
@@ -43,7 +42,6 @@ import 'ui/router/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-
   runApp(const MyApp());
 }
 
@@ -74,8 +72,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-
-
         Provider<InteractionService>(create: (_) => InteractionService()),
 
         Provider<InteractionRepository>(
@@ -103,7 +99,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        //  Cart
         ChangeNotifierProvider<CartViewModel>(
           create: (_) => CartViewModel(),
         ),
@@ -116,7 +111,6 @@ class MyApp extends StatelessWidget {
           )..loadFavorites(),
         ),
 
-        // Recently Viewed (LRU)
         Provider<RecentlyViewedStorage>(create: (_) => RecentlyViewedStorage()),
 
         Provider<RecentlyViewedRepository>(
@@ -154,15 +148,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        Provider<RatingsRepository>(
-          create: (context) => RatingsRepository(
-            service: context.read<RatingsService>(),
-            cache: context.read<RatingsCacheStorage>(),
-            authRepository: context.read<AuthRepository>(),
-            connectivity: context.read<ConnectivityService>(),
-          ),
-        ),
-
+        // Ratings + Profile
         Provider<RatingsService>(create: (_) => RatingsService()),
 
         Provider<RatingsCacheStorage>(create: (_) => RatingsCacheStorage()),
@@ -186,6 +172,7 @@ class MyApp extends StatelessWidget {
 
         Provider<CategoryRepository>(create: (_) => CategoryRepository()),
         Provider<ImageUploadRepository>(create: (_) => ImageUploadRepository()),
+
         Provider<ChatService>(
           create: (_) => ChatService(baseUrl: dotenv.env['API_BASE_URL']!),
         ),
@@ -199,6 +186,7 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               MessagesViewModel(chatRepository: context.read<ChatRepository>()),
         ),
+
         ChangeNotifierProvider<CreateListingViewModel>(
           create: (context) => CreateListingViewModel(
             connectivityService: context.read<ConnectivityService>(),
