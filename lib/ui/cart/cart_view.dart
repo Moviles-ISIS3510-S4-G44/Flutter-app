@@ -315,47 +315,52 @@ class _CartSummary extends StatelessWidget {
             height: 52,
             child: ElevatedButton(
               onPressed: cart.items.isEmpty
-                  ? null
-                  : () async {
-                      final authRepository =
-                          context.read<AuthRepository>();
-                      final token =
-                          await authRepository.getAccessToken();
+                ? null
+                : () async {
+                    final authRepository = context.read<AuthRepository>();
+                    final token = await authRepository.getAccessToken();
+                    if (!context.mounted) return;
+
+                    if (token == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Debes iniciar sesión primero.')),
+                      );
+                      return;
+                    }
+
+                    try {
+                      final result = await context
+                          .read<CartViewModel>()
+                          .checkout(token);
+
                       if (!context.mounted) return;
 
-                      if (token == null) {
+                      // Mostrar errores específicos si los hubo
+                      if (result.hasFailures) {
+                        final msg = result.failed
+                            .map((e) => '• ${e.listingTitle}: ${e.reason}')
+                            .join('\n');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Debes iniciar sesión primero.')),
-                        );
-                        return;
-                      }
-
-                      try {
-                        final purchases = await context
-                            .read<CartViewModel>()
-                            .checkout(token);
-
-                        if (!context.mounted) return;
-
-                        if (purchases.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'No se pudo completar la compra.')),
-                          );
-                          return;
-                        }
-
-                        context.push('/rate-purchases', extra: purchases);
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
+                          SnackBar(
+                            content: Text(msg),
+                            backgroundColor: Colors.redAccent,
+                            duration: const Duration(seconds: 5),
+                          ),
                         );
                       }
-                    },
+
+                      // Navegar a ratings solo si algo se compró
+                      if (result.hasSuccesses) {
+                        context.push('/rate-purchases', extra: result.succeeded);
+                      }
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error inesperado: $e')),
+                      );
+                    }
+                  },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3483FA),
                 foregroundColor: Colors.white,

@@ -1,11 +1,27 @@
-import 'package:flutter/foundation.dart';
-import 'package:marketplace_flutter_application/data/repositories/auth_repository.dart';
-import 'package:marketplace_flutter_application/data/services/listing_api_service.dart';
-import 'package:marketplace_flutter_application/models/cart/cart_item.dart';
-import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:marketplace_flutter_application/config/app_config.dart';
+import 'package:marketplace_flutter_application/models/cart/cart_item.dart';
+import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
+
+class CheckoutResult {
+  final List<Map<String, String>> succeeded;
+  final List<CheckoutError> failed;
+
+  CheckoutResult({required this.succeeded, required this.failed});
+
+  bool get hasSuccesses => succeeded.isNotEmpty;
+  bool get hasFailures => failed.isNotEmpty;
+}
+
+class CheckoutError {
+  final String listingTitle;
+  final String reason;
+
+  CheckoutError({required this.listingTitle, required this.reason});
+}
 
 class CartViewModel extends ChangeNotifier {
   final List<CartItem> _items = [];
@@ -36,10 +52,9 @@ class CartViewModel extends ChangeNotifier {
   int get totalPrice =>
       _items.fold(0, (sum, item) => sum + item.listing.price);
 
-  /// Compra todos los items del carrito.
-  /// Retorna lista de {listingId, purchaseId, sellerName} para la pantalla de rating.
-  Future<List<Map<String, String>>> checkout(String token) async {
-    final results = <Map<String, String>>[];
+  Future<CheckoutResult> checkout(String token) async {
+    final succeeded = <Map<String, String>>[];
+    final failed = <CheckoutError>[];
     final client = http.Client();
 
     for (final item in _items) {
@@ -51,23 +66,56 @@ class CartViewModel extends ChangeNotifier {
             'Content-Type': 'application/json',
           },
           body: jsonEncode({'listing_id': item.listing.id}),
-        );
+        ).timeout(const Duration(seconds: 10));
+
+        debugPrint('checkout [${item.listing.title}] → ${response.statusCode}: ${response.body}');
 
         if (response.statusCode == 201) {
           final body = jsonDecode(response.body) as Map<String, dynamic>;
-          results.add({
+          succeeded.add({
             'purchaseId': body['id'] as String,
             'listingId': item.listing.id,
             'listingTitle': item.listing.title,
             'sellerName': 'Vendedor',
           });
+        } else {
+          // Extraer mensaje del backend si existe
+          String reason;
+          try {
+            final body = jsonDecode(response.body) as Map<String, dynamic>;
+            reason = body['detail'] as String? ?? _reasonFromStatus(response.statusCode);
+          } catch (_) {
+            reason = _reasonFromStatus(response.statusCode);
+          }
+          failed.add(CheckoutError(
+            listingTitle: item.listing.title,
+            reason: reason,
+          ));
         }
       } catch (e) {
         debugPrint('checkout error for ${item.listing.id}: $e');
+        failed.add(CheckoutError(
+          listingTitle: item.listing.title,
+          reason: 'Error de conexión. Verifica tu red.',
+        ));
       }
     }
 
-    clear();
-    return results;
+    // Solo limpia los que sí se compraron
+    for (final s in succeeded) {
+      remove(s['listingId']!);
+    }
+
+    return CheckoutResult(succeeded: succeeded, failed: failed);
+  }
+
+  String _reasonFromStatus(int status) {
+    switch (status) {
+      case 401: return 'Sesión expirada. Vuelve a iniciar sesión.';
+      case 403: return 'No puedes comprar tu propio producto.';
+      case 404: return 'Producto no encontrado.';
+      case 409: return 'Este producto ya fue comprado por alguien más.';
+      default:  return 'Error del servidor ($status).';
+    }
   }
 }
