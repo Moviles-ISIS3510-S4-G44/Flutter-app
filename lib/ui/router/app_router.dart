@@ -10,6 +10,7 @@ import 'package:marketplace_flutter_application/ui/profile/widgets/personal_info
 import 'package:marketplace_flutter_application/ui/profile/profile_view.dart';
 import 'package:marketplace_flutter_application/ui/cart/cart_view.dart';
 import 'package:marketplace_flutter_application/ui/messages/messages_view.dart';
+import 'package:marketplace_flutter_application/ui/rate_purchase/rate_purchase_view.dart';
 
 import '../home/home_view.dart';
 import '../login/login_view.dart';
@@ -70,6 +71,14 @@ class AppRouter {
         builder: (context, state) {
           final conversationId = state.pathParameters['conversationId']!;
           return ChatDetailView(conversationId: conversationId);
+        },
+      ),
+      GoRoute(
+        path: '/rate-purchases',
+        builder: (context, state) {
+          final purchases =
+              state.extra as List<Map<String, String>>;
+          return RatePurchasesView(purchases: purchases);
         },
       ),
 
