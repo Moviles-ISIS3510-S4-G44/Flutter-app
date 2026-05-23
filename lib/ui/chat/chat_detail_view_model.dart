@@ -11,6 +11,10 @@ class ChatDetailViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
   final String conversationId;
 
+  // Control para evitar sincronizaciones demasiado frecuentes
+  DateTime? _lastSyncTime;
+  static const _syncDebounceMs = 3000; // 3 segundos
+
   ChatDetailViewModel({
     required ChatRepository chatRepository,
     required AuthRepository authRepository,
@@ -56,6 +60,7 @@ class ChatDetailViewModel extends ChangeNotifier {
   }
 
   /// Carga el chat: primero desde caché, luego sincroniza con API
+  /// Implementa debounce para evitar llamadas frecuentes
   Future<void> loadChat() async {
     isLoading = true;
     errorMessage = null;
@@ -65,7 +70,7 @@ class ChatDetailViewModel extends ChangeNotifier {
       final token = await _getToken();
       currentUserId = _extractUserIdFromToken(token);
 
-      // Cargar desde caché primero
+      // Cargar desde caché primero (respuesta instantánea)
       try {
         messages = await _chatRepository.getCachedMessages(conversationId);
         messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
@@ -73,30 +78,47 @@ class ChatDetailViewModel extends ChangeNotifier {
         // Si no hay caché, continuar
       }
 
-      // Sincronizar con API en background
-      _isSyncing = true;
-      try {
-        conversation = await _chatRepository.getConversation(
-          accessToken: token,
-          conversationId: conversationId,
-        );
+      // Decidir si sincronizar basado en tiempo transcurrido
+      final now = DateTime.now();
+      final shouldSync = _lastSyncTime == null ||
+          now.difference(_lastSyncTime!).inMilliseconds > _syncDebounceMs;
 
-        messages = await _chatRepository.getMessages(
-          accessToken: token,
-          conversationId: conversationId,
-        );
+      if (shouldSync) {
+        _isSyncing = true;
+        _lastSyncTime = now;
 
-        messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
-        errorMessage = null; // Limpiar error si la sincronización funciona
-      } catch (syncError) {
-        // Si falla la sincronización pero hay caché, mostrar advertencia suave
-        if (messages.isEmpty) {
-          errorMessage = 'Offline: Using cached messages';
-        } else {
-          debugPrint('Sync error (but cached data available): $syncError');
+        try {
+          // Sincronizar en paralelo para mejor performance
+          final conversationFuture = _chatRepository.getConversation(
+            accessToken: token,
+            conversationId: conversationId,
+          );
+
+          final messagesFuture = _chatRepository.getMessages(
+            accessToken: token,
+            conversationId: conversationId,
+          );
+
+          final results = await Future.wait(
+            [conversationFuture, messagesFuture] as List<Future<dynamic>>,
+            eagerError: false,
+          );
+
+          conversation = results[0] as ChatConversation;
+          messages = results[1] as List<ChatMessage>;
+
+          messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
+          errorMessage = null;
+        } catch (syncError) {
+          // Si falla pero hay caché, mostrar advertencia suave
+          if (messages.isEmpty) {
+            errorMessage = 'Offline: Using cached messages';
+          } else {
+            debugPrint('Sync error (cached data available): $syncError');
+          }
+        } finally {
+          _isSyncing = false;
         }
-      } finally {
-        _isSyncing = false;
       }
     } catch (error) {
       errorMessage = error.toString();
@@ -107,7 +129,14 @@ class ChatDetailViewModel extends ChangeNotifier {
     }
   }
 
+  /// Recarga el chat forzando sincronización
+  Future<void> refreshChat() async {
+    _lastSyncTime = null; // Fuerza sincronización
+    await loadChat();
+  }
+
   /// Envía un mensaje al servidor
+  /// Más eficiente: solo agrega el nuevo mensaje al caché
   Future<void> sendMessage(String text) async {
     final cleanText = text.trim();
 
@@ -131,10 +160,16 @@ class ChatDetailViewModel extends ChangeNotifier {
       messages = [...messages, newMessage];
       messages.sort((a, b) => a.sentAt.compareTo(b.sentAt));
 
-      conversation = await _chatRepository.getConversation(
+      // Actualizar conversación sin bloquear UI
+      _chatRepository.getConversation(
         accessToken: token,
         conversationId: conversationId,
-      );
+      ).then((conv) {
+        conversation = conv;
+        notifyListeners();
+      }).catchError((_) {
+        // Silenciar error si falla
+      });
     } catch (error) {
       errorMessage = error.toString();
     } finally {
@@ -145,4 +180,13 @@ class ChatDetailViewModel extends ChangeNotifier {
 
   /// Indica si está sincronizando en background
   bool get isSyncing => _isSyncing;
+
+  /// Limpia el caché de esta conversación
+  Future<void> clearCache() async {
+    await _chatRepository.clearConversationCache(conversationId);
+    messages = [];
+    conversation = null;
+    _lastSyncTime = null;
+    notifyListeners();
+  }
 }

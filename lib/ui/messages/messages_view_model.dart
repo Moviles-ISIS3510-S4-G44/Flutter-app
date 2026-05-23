@@ -5,6 +5,10 @@ import 'package:marketplace_flutter_application/models/chats/chat_conversation.d
 class MessagesViewModel extends ChangeNotifier {
   final ChatRepository _chatRepository;
 
+  // Control para evitar sincronizaciones demasiado frecuentes
+  DateTime? _lastSyncTime;
+  static const _syncDebounceMs = 5000; // 5 segundos
+
   MessagesViewModel({
     required ChatRepository chatRepository,
   }) : _chatRepository = chatRepository;
@@ -15,6 +19,7 @@ class MessagesViewModel extends ChangeNotifier {
   List<ChatConversation> conversations = [];
 
   /// Carga conversaciones: primero desde caché, luego intenta sincronizar con API
+  /// Implementa debounce para evitar llamadas frecuentes
   Future<void> loadConversations({
     required String accessToken,
   }) async {
@@ -38,22 +43,30 @@ class MessagesViewModel extends ChangeNotifier {
       // Cargar desde caché primero
       conversations = await _chatRepository.getCachedConversations();
 
-      // Intentar sincronizar con API en background
-      _isSyncing = true;
-      try {
-        conversations = await _chatRepository.getConversations(
-          accessToken: cleanToken,
-        );
-        errorMessage = null; // Limpiar error si la sincronización funciona
-      } catch (syncError) {
-        // Si falla la sincronización pero hay caché, mostrar advertencia suave
-        if (conversations.isEmpty) {
-          errorMessage = 'Offline: Using cached conversations';
-        } else {
-          debugPrint('Sync error (but cached data available): $syncError');
+      // Decidir si sincronizar basado en tiempo transcurrido
+      final now = DateTime.now();
+      final shouldSync = _lastSyncTime == null ||
+          now.difference(_lastSyncTime!).inMilliseconds > _syncDebounceMs;
+
+      if (shouldSync) {
+        _isSyncing = true;
+        _lastSyncTime = now;
+
+        try {
+          conversations = await _chatRepository.getConversations(
+            accessToken: cleanToken,
+          );
+          errorMessage = null;
+        } catch (syncError) {
+          // Si falla pero hay caché, mostrar advertencia suave
+          if (conversations.isEmpty) {
+            errorMessage = 'Offline: Using cached conversations';
+          } else {
+            debugPrint('Sync error (cached data available): $syncError');
+          }
+        } finally {
+          _isSyncing = false;
         }
-      } finally {
-        _isSyncing = false;
       }
     } catch (error) {
       conversations = [];
@@ -68,6 +81,7 @@ class MessagesViewModel extends ChangeNotifier {
   Future<void> refreshConversations({
     required String accessToken,
   }) async {
+    _lastSyncTime = null; // Fuerza sincronización
     await loadConversations(accessToken: accessToken);
   }
 
@@ -80,6 +94,12 @@ class MessagesViewModel extends ChangeNotifier {
   }
 
   bool get hasConversations => conversations.isNotEmpty;
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
 
   bool get isEmptyState =>
       !isLoading && errorMessage == null && conversations.isEmpty;
