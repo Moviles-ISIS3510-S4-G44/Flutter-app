@@ -206,3 +206,37 @@ The **Model layer in MVVM = data layer (repositories + services)**
 [1]: https://docs.flutter.dev/app-architecture/guide?utm_source=chatgpt.com "Guide to app architecture"
 [2]: https://docs.flutter.dev/app-architecture/case-study/dependency-injection?utm_source=chatgpt.com "Communicating between layers"
 [3]: https://docs.flutter.dev/app-architecture/case-study?utm_source=chatgpt.com "Architecture case study"
+
+---
+
+## 🔎 Semantic Search (On-Device + Groq)
+
+This app now combines **on-device semantic search** with **Groq intent parsing**:
+
+- On-device embeddings: `all-MiniLM-L6-v2` in TFLite format.
+- Intent parsing: Groq `gemma2-9b-it` to extract `price`, `category`, and `condition` filters.
+
+### Model Assets
+
+Place your models and tokenizer here:
+
+```text
+assets/
+  models/
+    all-MiniLM-L6-v2.tflite
+    vocab.txt
+    model.onnx
+```
+
+Notes:
+- `model.onnx` is stored for reference or conversion; the app uses the TFLite model at runtime.
+- If you only have ONNX, convert it to TFLite and name it `all-MiniLM-L6-v2.tflite`.
+
+### Groq API Key
+
+The app reads Groq configuration from `.env`:
+
+```dotenv
+GROQ_API_KEY=your_key_here
+GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+```

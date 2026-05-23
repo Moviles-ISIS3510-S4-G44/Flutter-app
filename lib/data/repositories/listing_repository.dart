@@ -63,6 +63,8 @@ class ListingRepository {
       category: dto.categoryId.toString(),
       imageUrl: dto.images.isNotEmpty ? dto.images[0] : '',
       location: dto.location,
+      description: dto.description,
+      condition: dto.condition,
     );
   }
 
