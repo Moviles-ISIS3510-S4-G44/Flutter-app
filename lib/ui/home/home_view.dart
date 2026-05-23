@@ -147,7 +147,7 @@ class _HomeBody extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.wifi_off_rounded,
+                      const Icon(Icons.wifi_off_rounded,
                           size: 56, color: Color(0xFFBDBDBD)),
                       const SizedBox(height: 16),
                       Text(
@@ -232,7 +232,7 @@ class _HomeBody extends StatelessWidget {
                         child: Center(
                           child: Column(
                             children: [
-                              Icon(Icons.search_off_rounded,
+                              const Icon(Icons.search_off_rounded,
                                   size: 48, color: Color(0xFFBDBDBD)),
                               const SizedBox(height: 12),
                               Text(
