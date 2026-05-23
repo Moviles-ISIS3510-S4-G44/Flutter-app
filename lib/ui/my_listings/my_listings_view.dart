@@ -75,13 +75,13 @@ class _MyListingsViewState extends State<MyListingsView> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.error_outline,
-                  size: 56, color: Colors.grey.shade400),
+                  size: 56, color: Color(0xFFBDBDBD)),
               const SizedBox(height: 16),
               Text(
                 vm.errorMessage!,
                 textAlign: TextAlign.center,
                 style:
-                    TextStyle(fontSize: 15, color: Colors.grey.shade700),
+                    TextStyle(fontSize: 15, color: Color(0xFF757575)),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(

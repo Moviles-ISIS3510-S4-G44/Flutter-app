@@ -464,7 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                                 : () => _handleLogin(context),
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
-                              backgroundColor: Color(0xFFFFE600),
+                              backgroundColor: const Color(0xFFFFE600),
                               foregroundColor: textPrimary,
                               disabledBackgroundColor: const Color(0xFFE6E6E6),
                               disabledForegroundColor: const Color(0xFF9E9E9E),
@@ -498,15 +498,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
 
                         const SizedBox(height: 30),
-                        Row(
+                        const Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Divider(
                                 color: Color(0xFFE0E0E0),
                                 thickness: 1,
                               ),
                             ),
-                            const Expanded(
+                            Expanded(
                               child: Divider(
                                 color: Color(0xFFE0E0E0),
                                 thickness: 1,

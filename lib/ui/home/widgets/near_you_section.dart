@@ -40,9 +40,9 @@ class NearYouSection extends StatelessWidget {
                   color: const Color(0xFFFFE600),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(
+                child: const Text(
                   '< 10 km',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1F1F1F),

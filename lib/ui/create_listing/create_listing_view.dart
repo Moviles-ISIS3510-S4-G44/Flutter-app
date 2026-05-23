@@ -8,7 +8,6 @@ import 'package:marketplace_flutter_application/ui/create_listing/widgets/listin
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_image_picker_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_location_section.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/widgets/listing_submit_section.dart';
-import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 import '../shared/widgets/app_bottom_nav_bar.dart';
@@ -68,12 +67,12 @@ class _CreateListingViewState extends State<CreateListingView> {
             if (!connectivityModel.isOnline)
               const ConnectivityView(),
 
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     SizedBox(height: 8),
                     ListingImagePickerSection(),
                     SizedBox(height: 24),

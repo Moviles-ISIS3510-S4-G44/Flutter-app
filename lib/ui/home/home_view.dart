@@ -148,7 +148,7 @@ class _HomeBody extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.wifi_off_rounded,
-                          size: 56, color: Colors.grey.shade400),
+                          size: 56, color: Color(0xFFBDBDBD)),
                       const SizedBox(height: 16),
                       Text(
                         'No se pudieron cargar los listings',
@@ -233,7 +233,7 @@ class _HomeBody extends StatelessWidget {
                           child: Column(
                             children: [
                               Icon(Icons.search_off_rounded,
-                                  size: 48, color: Colors.grey.shade400),
+                                  size: 48, color: Color(0xFFBDBDBD)),
                               const SizedBox(height: 12),
                               Text(
                                 'Sin resultados para\n"${viewModel.searchQuery}"',
