@@ -66,4 +66,17 @@ class ListingApiService {
 
   return ListingDto.fromJson(decodedBody);
 }
+
+Future<void> updateListingStatus(String listingId, String status) async {
+  final response = await _httpClient.patch(
+    Uri.parse('$_baseUrl/listings/$listingId/status?new_status=$status'),
+    headers: {'Content-Type': 'application/json'},
+  );
+
+  if (response.statusCode != 200) {
+    debugPrint('Failed to update listing status: ${response.statusCode} - ${response.body}');
+    throw Exception('Failed to update listing status');
+  }
+}
+
 }
