@@ -7,7 +7,7 @@ import 'package:marketplace_flutter_application/models/cart/cart_item.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_detail.dart';
 
 class CheckoutResult {
-  final List<Map<String, String>> succeeded;
+  final List<Map<String, dynamic>> succeeded;
   final List<CheckoutError> failed;
 
   CheckoutResult({required this.succeeded, required this.failed});
@@ -53,7 +53,7 @@ class CartViewModel extends ChangeNotifier {
       _items.fold(0, (sum, item) => sum + item.listing.price);
 
   Future<CheckoutResult> checkout(String token) async {
-    final succeeded = <Map<String, String>>[];
+    final succeeded = <Map<String, dynamic>>[];
     final failed = <CheckoutError>[];
     final client = http.Client();
 
@@ -72,11 +72,15 @@ class CartViewModel extends ChangeNotifier {
 
         if (response.statusCode == 201) {
           final body = jsonDecode(response.body) as Map<String, dynamic>;
+          // body expected to include fields from ER: id, listing_id, buyer_id, price_at_purchase, purchased_at, seller_id
           succeeded.add({
-            'purchaseId': body['id'] as String,
-            'listingId': item.listing.id,
+            'purchaseId': body['id'],
+            'listingId': body['listing_id'] ?? item.listing.id,
             'listingTitle': item.listing.title,
-            'sellerName': 'Vendedor',
+            'sellerId': body['seller_id'],
+            'sellerName': body['seller_name'] ?? 'Vendedor',
+            'priceAtPurchase': body['price_at_purchase'] ?? item.listing.price,
+            'purchasedAt': body['purchased_at'],
           });
         } else {
           // Extraer mensaje del backend si existe
@@ -101,9 +105,10 @@ class CartViewModel extends ChangeNotifier {
       }
     }
 
-    // Solo limpia los que sí se compraron
+    // Solo limpia los que sí se compraron (listingId puede ser dinámico)
     for (final s in succeeded) {
-      remove(s['listingId']!);
+      final id = s['listingId']?.toString();
+      if (id != null) remove(id);
     }
 
     return CheckoutResult(succeeded: succeeded, failed: failed);

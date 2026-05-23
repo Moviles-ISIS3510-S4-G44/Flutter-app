@@ -76,8 +76,7 @@ class AppRouter {
       GoRoute(
         path: '/rate-purchases',
         builder: (context, state) {
-          final purchases =
-              state.extra as List<Map<String, String>>;
+          final purchases = state.extra as List<Map<String, dynamic>>;
           return RatePurchasesView(purchases: purchases);
         },
       ),
