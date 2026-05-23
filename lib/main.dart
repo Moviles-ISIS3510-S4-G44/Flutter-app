@@ -38,6 +38,11 @@ import 'package:marketplace_flutter_application/ui/login/login_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/signup/signup_viewmodel.dart';
 
 import 'ui/router/app_router.dart';
+import 'package:marketplace_flutter_application/data/services/groq_intent_service.dart';
+import 'package:marketplace_flutter_application/data/services/intent_parser.dart';
+import 'package:marketplace_flutter_application/data/services/semantic_search_service.dart';
+import 'package:marketplace_flutter_application/data/services/tflite_embedding_service.dart';
+import 'package:marketplace_flutter_application/data/services/embedding_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -137,6 +142,23 @@ class MyApp extends StatelessWidget {
           create: (context) => SignUpViewModel(context.read<AuthRepository>()),
         ),
 
+        // ── Semantic Search ───────────────────────────────────────────────
+        Provider<EmbeddingService>(
+          create: (_) => TfliteEmbeddingService(
+            modelAssetPath: 'assets/models/all-MiniLM-L6-v2.tflite',
+            vocabAssetPath: 'assets/models/vocab.txt',
+          ),
+        ),
+
+        Provider<IntentParser>(create: (_) => GroqIntentService()),
+
+        Provider<SemanticSearchService>(
+          create: (context) => SemanticSearchService(
+            embeddingService: context.read<EmbeddingService>(),
+            intentParser: context.read<IntentParser>(),
+          ),
+        ),
+
         ChangeNotifierProvider<HomeViewModel>(
           create: (context) => HomeViewModel(
             connectivityService: context.read<ConnectivityService>(),
@@ -145,6 +167,7 @@ class MyApp extends StatelessWidget {
             categoryApiService: context.read<CategoryApiService>(),
             locationRepository: context.read<LocationRepository>(),
             recentlyViewedRepository: context.read<RecentlyViewedRepository>(),
+            semanticSearchService: context.read<SemanticSearchService>(),
           ),
         ),
 

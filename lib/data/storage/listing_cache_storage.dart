@@ -75,6 +75,8 @@ class ListingCacheStorage {
         'category': l.category,
         'imageUrl': l.imageUrl,
         'location': l.location,
+        'description': l.description,
+        'condition': l.condition,
       };
 
   static ListingSummary _summaryFromJson(Map<String, dynamic> json) => ListingSummary(
@@ -85,5 +87,8 @@ class ListingCacheStorage {
         category: json['category'] as String,
         imageUrl: json['imageUrl'] as String,
         location: json['location'] as String?,
+        description: json['description'] as String?,
+        condition: json['condition'] as String?,
       );
 }
+

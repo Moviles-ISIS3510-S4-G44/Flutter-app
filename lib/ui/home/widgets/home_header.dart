@@ -29,7 +29,6 @@ class HomeHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(22),
                   ),
                   child: TextField(
-                    enabled: isOnline,
                     onChanged: viewModel.updateSearchQuery,
                     style: const TextStyle(
                       fontSize: 14,
