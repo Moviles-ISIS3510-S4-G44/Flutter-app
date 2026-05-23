@@ -6,6 +6,8 @@ class ListingSummary {
   final String category;
   final String imageUrl;
   final String? location;
+  final String? description;
+  final String? condition;
 
   const ListingSummary({
     required this.id,
@@ -15,5 +17,7 @@ class ListingSummary {
     required this.category,
     required this.imageUrl,
     this.location,
+    this.description,
+    this.condition,
   });
 }

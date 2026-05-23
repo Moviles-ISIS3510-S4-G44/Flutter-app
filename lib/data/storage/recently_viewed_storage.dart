@@ -69,6 +69,8 @@ class RecentlyViewedStorage {
         'category': l.category,
         'imageUrl': l.imageUrl,
         'location': l.location,
+        'description': l.description,
+        'condition': l.condition,
       };
 
   ListingSummary _fromJson(Map<String, dynamic> json) => ListingSummary(
@@ -79,5 +81,7 @@ class RecentlyViewedStorage {
         category: json['category'] as String,
         imageUrl: json['imageUrl'] as String,
         location: json['location'] as String?,
+        description: json['description'] as String?,
+        condition: json['condition'] as String?,
       );
 }

@@ -42,8 +42,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   image_picker: ^1.1.2
   google_maps_flutter: ^2.12.3
-  fuzzywuzzy: ^0.2.0
   geolocator: ^11.0.0
+  tflite_flutter: ^0.10.4
 
   # para parsear imgs
   http_parser: ^4.0.0
@@ -124,6 +124,7 @@ flutter:
   assets:
     - .env
     - assets/images/logo_app.jpg
+    - assets/models/
 flutter_launcher_icons:
   android: true
   ios: true

@@ -1,14 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:marketplace_flutter_application/data/dtos/search/intent_filters.dart';
 import 'package:marketplace_flutter_application/data/repositories/interaction_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/listing_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/location_repository.dart';
 import 'package:marketplace_flutter_application/data/repositories/recently_viewed_repository.dart';
 import 'package:marketplace_flutter_application/data/services/category_api_service.dart';
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
+import 'package:marketplace_flutter_application/data/services/semantic_search_service.dart';
+import 'package:marketplace_flutter_application/data/services/semantic_similarity.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 
 class HomeViewModel extends ChangeNotifier {
@@ -18,8 +20,10 @@ class HomeViewModel extends ChangeNotifier {
   final CategoryApiService _categoryApiService;
   final LocationRepository _locationRepository;
   final RecentlyViewedRepository _recentlyViewedRepository;
+  final SemanticSearchService _semanticSearchService;
 
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
+  Timer? _searchDebounce;
 
   HomeViewModel({
     required this.connectivityService,
@@ -28,11 +32,13 @@ class HomeViewModel extends ChangeNotifier {
     required CategoryApiService categoryApiService,
     required LocationRepository locationRepository,
     required RecentlyViewedRepository recentlyViewedRepository,
+    required SemanticSearchService semanticSearchService,
   })  : _listingRepository = listingRepository ?? ListingRepository(),
         _interactionRepository = interactionRepository,
         _categoryApiService = categoryApiService,
         _locationRepository = locationRepository,
-        _recentlyViewedRepository = recentlyViewedRepository {
+        _recentlyViewedRepository = recentlyViewedRepository,
+        _semanticSearchService = semanticSearchService {
     loadListings();
     _subscribeToConnectivity();
   }
@@ -40,9 +46,11 @@ class HomeViewModel extends ChangeNotifier {
   // Estado
 
   bool isLoading = false;
+  bool isSearchLoading = false;
   String? errorMessage;
   String searchQuery = '';
   String selectedCategory = 'All';
+  IntentFilters currentIntentFilters = IntentFilters.empty;
 
   List<String> categories = ['All'];
   List<ListingSummary> featuredListings = [];
@@ -76,6 +84,7 @@ class HomeViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _connectivitySubscription?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -105,6 +114,8 @@ class HomeViewModel extends ChangeNotifier {
 
       isShowingCachedData = result.fromCache;
       cachedAt = result.cachedAt;
+
+      await _semanticSearchService.rebuildIndex(recentListings);
     } catch (error) {
       errorMessage = error.toString();
       featuredListings = [];
@@ -126,6 +137,10 @@ class HomeViewModel extends ChangeNotifier {
       _loadDistances(),
       _loadRecentlyViewed(),
     ]);
+
+    if (searchQuery.isNotEmpty) {
+      await _performSemanticSearch();
+    }
 
     isLoading = false;
     notifyListeners();
@@ -192,57 +207,140 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  // Filtros 
+  // Filtros
 
   void updateSearchQuery(String query) {
     searchQuery = query.trim();
-    _applyFilters();
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      _performSemanticSearch();
+    });
     notifyListeners();
   }
 
   void updateSelectedCategory(String category) {
     selectedCategory = category;
-    _applyFilters();
+    if (searchQuery.isEmpty) {
+      _applyCategoryOnly();
+      notifyListeners();
+      return;
+    }
+    _performSemanticSearch();
+  }
+
+  Future<void> _performSemanticSearch() async {
+    if (searchQuery.isEmpty) {
+      currentIntentFilters = IntentFilters.empty;
+      _applyCategoryOnly();
+      notifyListeners();
+      return;
+    }
+
+    isSearchLoading = true;
+    notifyListeners();
+
+    final candidates = _applyCategoryOnly(returnResults: true);
+    final isOnline = await connectivityService.isOnline;
+
+    final intentFuture = isOnline
+        ? _semanticSearchService.parseIntent(searchQuery)
+        : Future.value(IntentFilters.empty);
+    final semanticFuture =
+        _semanticSearchService.semanticSearch(searchQuery, candidates: candidates);
+
+    final results = await Future.wait([semanticFuture, intentFuture]);
+    final matches = results[0] as List<SemanticMatch>;
+    final intentFilters = results[1] as IntentFilters;
+
+    currentIntentFilters = intentFilters;
+
+    var filtered = candidates.toList();
+    filtered = _applyIntentFilters(filtered, intentFilters);
+
+    if (matches.isNotEmpty) {
+      final matchIds = matches.map((m) => m.id).toList();
+      final byId = {
+        for (final listing in filtered) listing.id: listing,
+      };
+      filtered = matchIds
+          .map((id) => byId[id])
+          .whereType<ListingSummary>()
+          .toList();
+    } else {
+      filtered = _fallbackTextSearch(filtered, searchQuery);
+    }
+
+    filteredListings = filtered;
+    isSearchLoading = false;
     notifyListeners();
   }
 
-  void _applyFilters() {
+  List<ListingSummary> _applyCategoryOnly({bool returnResults = false}) {
     Iterable<ListingSummary> results = recentListings;
-
     if (selectedCategory != 'All') {
       results = results.where(
         (l) => l.category.toLowerCase() == selectedCategory.toLowerCase(),
       );
     }
-
-    if (searchQuery.isEmpty) {
-      filteredListings = results.toList();
-      return;
+    final list = results.toList();
+    if (!returnResults) {
+      filteredListings = list;
     }
-
-    final scored = results.map((listing) {
-      return {'listing': listing, 'score': _calculateListingScore(listing)};
-    }).toList();
-
-    scored.removeWhere((item) => (item['score'] as int) < 55);
-    scored.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
-    filteredListings =
-        scored.map((item) => item['listing'] as ListingSummary).toList();
+    return list;
   }
 
-  int _calculateListingScore(ListingSummary listing) {
-    final query = searchQuery.toLowerCase().trim();
-    final title = listing.title.toLowerCase();
-    final category = listing.category.toLowerCase();
+  List<ListingSummary> _applyIntentFilters(
+    List<ListingSummary> source,
+    IntentFilters filters,
+  ) {
+    var results = source;
 
-    if (title.contains(query)) return 100;
-    if (category.contains(query)) return 85;
-    for (final word in title.split(' ')) {
-      if (word.contains(query)) return 95;
+    if (filters.category != null) {
+      final match = _matchCategory(filters.category!);
+      if (match != null) {
+        results = results
+            .where((l) => l.category.toLowerCase() == match.toLowerCase())
+            .toList();
+      }
     }
-    final titleScore = weightedRatio(query, title);
-    final categoryScore = weightedRatio(query, category);
-    return titleScore > categoryScore ? titleScore : categoryScore;
+
+    if (filters.minPrice != null) {
+      results = results.where((l) => l.price >= filters.minPrice!).toList();
+    }
+
+    if (filters.maxPrice != null) {
+      results = results.where((l) => l.price <= filters.maxPrice!).toList();
+    }
+
+    if (filters.condition != null) {
+      results = results
+          .where((l) => l.condition?.toLowerCase() == filters.condition)
+          .toList();
+    }
+
+    return results;
+  }
+
+  String? _matchCategory(String raw) {
+    final normalized = raw.trim().toLowerCase();
+    for (final category in categories) {
+      if (category.toLowerCase() == normalized) return category;
+      if (category.toLowerCase().contains(normalized)) return category;
+    }
+    return null;
+  }
+
+  List<ListingSummary> _fallbackTextSearch(
+    List<ListingSummary> source,
+    String query,
+  ) {
+    final q = query.toLowerCase();
+    return source
+        .where((listing) =>
+            listing.title.toLowerCase().contains(q) ||
+            listing.category.toLowerCase().contains(q) ||
+            (listing.description?.toLowerCase().contains(q) ?? false))
+        .toList();
   }
 
   ({double lat, double lng})? _parseCoords(String? location) {
