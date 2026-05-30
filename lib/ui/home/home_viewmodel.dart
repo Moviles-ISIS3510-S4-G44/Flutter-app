@@ -11,6 +11,7 @@ import 'package:marketplace_flutter_application/data/services/category_api_servi
 import 'package:marketplace_flutter_application/data/services/connectivity_service.dart';
 import 'package:marketplace_flutter_application/data/services/semantic_search_service.dart';
 import 'package:marketplace_flutter_application/data/services/semantic_similarity.dart';
+import 'package:marketplace_flutter_application/data/services/search_query_expander.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
 import 'package:marketplace_flutter_application/models/listings/listings_result.dart';
 
@@ -27,6 +28,8 @@ class HomeViewModel extends ChangeNotifier {
   Timer? _searchDebounce;
 
   Map<String, String> _categoryNameById = {};
+
+  final SearchQueryExpander _queryExpander = SearchQueryExpander();
 
   HomeViewModel({
     required this.connectivityService,
@@ -284,19 +287,26 @@ class HomeViewModel extends ChangeNotifier {
     var filtered = candidates.toList();
     filtered = _applyIntentFilters(filtered, intentFilters);
 
-    if (matches.isNotEmpty) {
-      final matchIds = matches.map((m) => m.id).toList();
-      final byId = {
-        for (final listing in filtered) listing.id: listing,
-      };
-      final ordered = <ListingSummary>[];
-      for (final id in matchIds) {
-        final listing = byId[id];
-        if (listing != null) ordered.add(listing);
+    final byIdScore = {for (final m in matches) m.id: m.score};
+    final expandedQuery = _queryExpander.expandText(searchQuery);
+    final queryTokens = _tokenize(_normalizeText(expandedQuery));
+
+    final scored = <({ListingSummary listing, double score})>[];
+    for (final listing in filtered) {
+      final semanticScore = byIdScore[listing.id] ?? 0.0;
+      final listingText = _listingText(listing);
+      final lexicalScore = _lexicalScore(listingText, queryTokens);
+      final phraseBoost = _phraseBoost(listingText, searchQuery);
+      final finalScore =
+          (semanticScore * 0.6) + (lexicalScore * 0.35) + (phraseBoost * 0.05);
+      if (finalScore >= 0.16) {
+        scored.add((listing: listing, score: finalScore));
       }
-      final orderedIds = ordered.map((l) => l.id).toSet();
-      final remaining = filtered.where((l) => !orderedIds.contains(l.id));
-      filtered = [...ordered, ...remaining];
+    }
+
+    if (scored.isNotEmpty) {
+      scored.sort((a, b) => b.score.compareTo(a.score));
+      filtered = scored.map((s) => s.listing).toList(growable: false);
     } else {
       filtered = _fallbackTextSearch(filtered, searchQuery);
     }
@@ -402,4 +412,56 @@ class HomeViewModel extends ChangeNotifier {
     if (lat == null || lng == null) return null;
     return (lat: lat, lng: lng);
   }
+
+  String _listingText(ListingSummary listing) {
+    final buffer = StringBuffer();
+    buffer.write(listing.title);
+    if (listing.description != null && listing.description!.isNotEmpty) {
+      buffer.write(' ');
+      buffer.write(listing.description);
+    }
+    buffer.write(' ');
+    buffer.write(listing.category);
+    if (listing.condition != null && listing.condition!.isNotEmpty) {
+      buffer.write(' ');
+      buffer.write(listing.condition);
+    }
+    return _normalizeText(buffer.toString());
+  }
+
+  List<String> _tokenize(String text) {
+    return text
+        .split(RegExp(r"\s+"))
+        .where((t) => t.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  double _lexicalScore(String listingText, List<String> queryTokens) {
+    if (queryTokens.isEmpty) return 0.0;
+    final listingTokens = _tokenize(listingText).toSet();
+    var matches = 0;
+    for (final token in queryTokens) {
+      if (listingTokens.contains(token)) matches++;
+    }
+    return matches / queryTokens.length;
+  }
+
+  double _phraseBoost(String listingText, String query) {
+    final normalizedQuery = _normalizeText(query);
+    if (normalizedQuery.isEmpty) return 0.0;
+    return listingText.contains(normalizedQuery) ? 1.0 : 0.0;
+  }
+
+  String _normalizeText(String input) {
+    final lower = input.trim().toLowerCase();
+    return lower
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ü', 'u')
+        .replaceAll('ñ', 'n');
+  }
 }
+
