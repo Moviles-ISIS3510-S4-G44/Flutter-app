@@ -7,7 +7,7 @@ class ListingDto {
   final int price;
   final String condition;
   final List<String> images;
-  final String location;
+  final String? location;
 
   const ListingDto({
     required this.id,
@@ -18,22 +18,30 @@ class ListingDto {
     required this.price,
     required this.condition,
     required this.images,
-    required this.location,
+    this.location,
   });
 
   factory ListingDto.fromJson(Map<String, dynamic> json) {
+    final categoryRaw = json['category_id'];
+    final priceRaw = json['price'];
+    final imagesRaw = json['images'];
+
     return ListingDto(
       id: json['id'] as String,
       sellerId: json['seller_id'] as String,
-      categoryId: json['category_id'] as String,
+      categoryId: categoryRaw?.toString() ?? '',
       title: json['title'] as String,
       description: json['description'] as String,
-      price: json['price'] as int,
+      price: priceRaw is int
+          ? priceRaw
+          : priceRaw is num
+              ? priceRaw.toInt()
+              : int.tryParse(priceRaw?.toString() ?? '') ?? 0,
       condition: json['condition'] as String,
-      images: (json['images'] as List<dynamic>)
-          .map((image) => image as String)
-          .toList(),
-      location: json['location'] as String,
+      images: imagesRaw is List
+          ? imagesRaw.map((image) => image.toString()).toList()
+          : const <String>[],
+      location: json['location']?.toString(),
     );
   }
 }

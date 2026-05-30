@@ -12,6 +12,7 @@ import 'package:marketplace_flutter_application/data/services/connectivity_servi
 import 'package:marketplace_flutter_application/data/services/semantic_search_service.dart';
 import 'package:marketplace_flutter_application/data/services/semantic_similarity.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
+import 'package:marketplace_flutter_application/models/listings/listings_result.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final ConnectivityService connectivityService;
@@ -24,6 +25,8 @@ class HomeViewModel extends ChangeNotifier {
 
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
   Timer? _searchDebounce;
+
+  Map<String, String> _categoryNameById = {};
 
   HomeViewModel({
     required this.connectivityService,
@@ -97,6 +100,9 @@ class HomeViewModel extends ChangeNotifier {
 
     try {
       final categoriesResponse = await _categoryApiService.getCategories();
+      _categoryNameById = {
+        for (final c in categoriesResponse) c.id: c.name,
+      };
       categories = [
         'All',
         ...categoriesResponse.map((c) => c.name),
@@ -105,17 +111,9 @@ class HomeViewModel extends ChangeNotifier {
       // Categorías fallan silenciosamente
     }
 
+    ListingsResult result;
     try {
-      final result = await _listingRepository.getListings();
-
-      featuredListings = result.listings.take(5).toList();
-      recentListings = result.listings;
-      filteredListings = result.listings;
-
-      isShowingCachedData = result.fromCache;
-      cachedAt = result.cachedAt;
-
-      await _semanticSearchService.rebuildIndex(recentListings);
+      result = await _listingRepository.getListings();
     } catch (error) {
       errorMessage = error.toString();
       featuredListings = [];
@@ -132,6 +130,20 @@ class HomeViewModel extends ChangeNotifier {
       return;
     }
 
+    final normalizedListings = _applyCategoryNames(result.listings);
+    featuredListings = normalizedListings.take(5).toList();
+    recentListings = normalizedListings;
+    filteredListings = normalizedListings;
+
+    isShowingCachedData = result.fromCache;
+    cachedAt = result.cachedAt;
+
+    try {
+      await _semanticSearchService.rebuildIndex(recentListings);
+    } catch (e) {
+      debugPrint('HomeViewModel: rebuildIndex error: $e');
+    }
+
     await Future.wait([
       _loadTopInteractions(),
       _loadDistances(),
@@ -139,7 +151,11 @@ class HomeViewModel extends ChangeNotifier {
     ]);
 
     if (searchQuery.isNotEmpty) {
-      await _performSemanticSearch();
+      try {
+        await _performSemanticSearch();
+      } catch (e) {
+        debugPrint('HomeViewModel: semantic search error: $e');
+      }
     }
 
     isLoading = false;
@@ -242,15 +258,25 @@ class HomeViewModel extends ChangeNotifier {
     final candidates = _applyCategoryOnly(returnResults: true);
     final isOnline = await connectivityService.isOnline;
 
-    final intentFuture = isOnline
-        ? _semanticSearchService.parseIntent(searchQuery)
-        : Future.value(IntentFilters.empty);
-    final semanticFuture =
-        _semanticSearchService.semanticSearch(searchQuery, candidates: candidates);
+    List<SemanticMatch> matches = [];
+    IntentFilters intentFilters = IntentFilters.empty;
 
-    final results = await Future.wait([semanticFuture, intentFuture]);
-    final matches = results[0] as List<SemanticMatch>;
-    final intentFilters = results[1] as IntentFilters;
+    try {
+      matches = await _semanticSearchService.semanticSearch(
+        searchQuery,
+        candidates: candidates,
+      );
+    } catch (e) {
+      debugPrint('HomeViewModel: semanticSearch error: $e');
+    }
+
+    try {
+      if (isOnline) {
+        intentFilters = await _semanticSearchService.parseIntent(searchQuery);
+      }
+    } catch (e) {
+      debugPrint('HomeViewModel: parseIntent error: $e');
+    }
 
     currentIntentFilters = intentFilters;
 
@@ -341,6 +367,25 @@ class HomeViewModel extends ChangeNotifier {
             listing.category.toLowerCase().contains(q) ||
             (listing.description?.toLowerCase().contains(q) ?? false))
         .toList();
+  }
+
+  List<ListingSummary> _applyCategoryNames(List<ListingSummary> listings) {
+    if (_categoryNameById.isEmpty) return listings;
+    return listings
+        .map(
+          (l) => ListingSummary(
+            id: l.id,
+            sellerId: l.sellerId,
+            title: l.title,
+            price: l.price,
+            category: _categoryNameById[l.category] ?? l.category,
+            imageUrl: l.imageUrl,
+            location: l.location,
+            description: l.description,
+            condition: l.condition,
+          ),
+        )
+        .toList(growable: false);
   }
 
   ({double lat, double lng})? _parseCoords(String? location) {

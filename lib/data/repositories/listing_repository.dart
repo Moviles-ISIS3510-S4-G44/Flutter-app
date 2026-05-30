@@ -82,7 +82,7 @@ class ListingRepository {
       price: dto.price,
       condition: dto.condition,
       images: dto.images,
-      location: dto.location,
+      location: dto.location ?? '',
     );
   }
 }
