@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart';
 
 import '../login/login_viewmodel.dart';
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
@@ -45,6 +46,31 @@ class _LoginPageState extends State<LoginPage> {
 
   static const int _maxEmailLength = 80;
   static const int _maxPasswordLength = 64;
+
+  static const bool _isTest = bool.fromEnvironment('FLUTTER_TEST', defaultValue: false);
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isTest) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _restoreSession();
+      }
+    });
+  }
+
+  Future<void> _restoreSession() async {
+    final viewModel = context.read<LoginViewModel>();
+    if (viewModel.isLoading || viewModel.isAuthenticated) return;
+
+    await viewModel.loadSession();
+    if (!mounted) return;
+
+    if (viewModel.isAuthenticated) {
+      context.go('/Home');
+    }
+  }
 
   @override
   void dispose() {
@@ -608,3 +634,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

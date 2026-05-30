@@ -31,6 +31,7 @@ import 'package:marketplace_flutter_application/data/storage/listing_cache_stora
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/storage/ratings_cache_storage.dart';
 import 'package:marketplace_flutter_application/data/storage/chat_local_storage.dart';
+import 'package:marketplace_flutter_application/data/storage/auth_user_storage.dart';
 
 import 'package:marketplace_flutter_application/ui/connectivity/connectivity_model.dart';
 import 'package:marketplace_flutter_application/ui/create_listing/create_listing_viewmodel.dart';
@@ -88,10 +89,13 @@ class MyApp extends StatelessWidget {
           create: (_) => TokenStorage(const FlutterSecureStorage()),
         ),
 
+        Provider<AuthUserStorage>(create: (_) => AuthUserStorage()),
+
         Provider<AuthRepository>(
           create: (context) => AuthRepository(
             authService: context.read<AuthService>(),
             tokenStorage: context.read<TokenStorage>(),
+            userStorage: context.read<AuthUserStorage>(),
           ),
         ),
 

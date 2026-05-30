@@ -4,12 +4,18 @@ import 'package:marketplace_flutter_application/data/dtos/auth/signup_response_d
 import 'package:marketplace_flutter_application/data/storage/auth_token_storage.dart';
 import 'package:marketplace_flutter_application/data/services/auth_service.dart';
 import 'package:marketplace_flutter_application/data/domains/auth/app_user.dart';
+import 'package:marketplace_flutter_application/data/storage/auth_user_storage.dart';
 
 class AuthRepository {
   final AuthService authService;
   final TokenStorage tokenStorage;
+  final AuthUserStorage userStorage;
 
-  AuthRepository({required this.authService, required this.tokenStorage});
+  AuthRepository({
+    required this.authService,
+    required this.tokenStorage,
+    required this.userStorage,
+  });
 
   Future<SignupResponseDto> signup({
     required String name,
@@ -36,12 +42,16 @@ class AuthRepository {
     final userDto = await authService.getCurrentUser(tokenResponse.accessToken);
     debugPrint('ME OK: ${userDto.email}');
 
-    return AppUser(
+    final user = AppUser(
       id: userDto.id,
       name: userDto.name,
       email: userDto.email,
       rating: userDto.rating,
     );
+
+    await userStorage.saveUser(user);
+
+    return user;
   }
 
   Future<AppUser?> tryRestoreSession() async {
@@ -50,15 +60,17 @@ class AuthRepository {
 
     try {
       final userDto = await authService.getCurrentUser(token);
-      return AppUser(
+      final user = AppUser(
         id: userDto.id,
         name: userDto.name,
         email: userDto.email,
         rating: userDto.rating,
       );
+      await userStorage.saveUser(user);
+      return user;
     } catch (_) {
-      await tokenStorage.clearToken();
-      return null;
+      // Offline or transient error: keep token and return cached user if available.
+      return userStorage.getUser();
     }
   }
 
@@ -97,5 +109,6 @@ class AuthRepository {
 
   Future<void> logout() async {
     await tokenStorage.clearToken();
+    await userStorage.clear();
   }
 }
