@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:marketplace_flutter_application/data/dtos/search/intent_filters.dart';
 import 'package:marketplace_flutter_application/data/services/embedding_service.dart';
 import 'package:marketplace_flutter_application/data/services/intent_parser.dart';
+import 'package:marketplace_flutter_application/data/services/search_query_expander.dart';
 import 'package:marketplace_flutter_application/data/services/semantic_similarity.dart';
 import 'package:marketplace_flutter_application/data/storage/lru_cache.dart';
 import 'package:marketplace_flutter_application/models/listings/listing_summary.dart';
@@ -9,6 +10,7 @@ import 'package:marketplace_flutter_application/models/listings/listing_summary.
 class SemanticSearchService {
   final EmbeddingService _embeddingService;
   final IntentParser _intentParser;
+  final SearchQueryExpander _queryExpander;
 
   final LruCache<String, List<double>> _queryEmbeddingCache;
   final LruCache<String, IntentFilters> _intentCache;
@@ -19,10 +21,12 @@ class SemanticSearchService {
   SemanticSearchService({
     required EmbeddingService embeddingService,
     required IntentParser intentParser,
+    SearchQueryExpander? queryExpander,
     int queryCacheSize = 64,
     int intentCacheSize = 64,
   })  : _embeddingService = embeddingService,
         _intentParser = intentParser,
+        _queryExpander = queryExpander ?? SearchQueryExpander(),
         _queryEmbeddingCache = LruCache(capacity: queryCacheSize),
         _intentCache = LruCache(capacity: intentCacheSize);
 
@@ -32,7 +36,8 @@ class SemanticSearchService {
 
     for (final listing in listings) {
       final text = _listingToText(listing);
-      final embedding = await _embeddingService.embed(text);
+      final expanded = _queryExpander.expandText(text);
+      final embedding = await _embeddingService.embed(expanded);
       if (embedding.isEmpty) continue;
       _listingEmbeddings[listing.id] = embedding;
       _listingById[listing.id] = listing;
@@ -47,10 +52,11 @@ class SemanticSearchService {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
-    final cached = _queryEmbeddingCache.get(trimmed);
-    final queryEmbedding = cached ?? await _embeddingService.embed(trimmed);
+    final expanded = _queryExpander.expandText(trimmed);
+    final cached = _queryEmbeddingCache.get(expanded);
+    final queryEmbedding = cached ?? await _embeddingService.embed(expanded);
     if (queryEmbedding.isEmpty) return [];
-    _queryEmbeddingCache.put(trimmed, queryEmbedding);
+    _queryEmbeddingCache.put(expanded, queryEmbedding);
 
     final candidateIds = <String>[];
     final candidateEmbeddings = <List<double>>[];
@@ -115,4 +121,3 @@ class SemanticSearchService {
     return buffer.toString();
   }
 }
-

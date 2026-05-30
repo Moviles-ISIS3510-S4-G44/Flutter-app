@@ -42,17 +42,34 @@ import 'ui/router/app_router.dart';
 import 'package:marketplace_flutter_application/data/services/groq_intent_service.dart';
 import 'package:marketplace_flutter_application/data/services/intent_parser.dart';
 import 'package:marketplace_flutter_application/data/services/semantic_search_service.dart';
-import 'package:marketplace_flutter_application/data/services/tflite_embedding_service.dart';
+import 'package:marketplace_flutter_application/data/services/onnx_embedding_service.dart';
 import 'package:marketplace_flutter_application/data/services/embedding_service.dart';
+import 'package:marketplace_flutter_application/data/services/model_asset_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-  runApp(const MyApp());
+
+  String modelPath = '';
+  try {
+    final assetService = ModelAssetService(
+      assetPath: 'assets/models/model.onnx',
+      fileName: 'model.onnx',
+      minBytes: 10 * 1024 * 1024,
+    );
+    final file = await assetService.ensureModelFile();
+    modelPath = file.path;
+  } catch (e) {
+    debugPrint('ONNX asset error: $e');
+  }
+
+  runApp(MyApp(modelPath: modelPath));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String modelPath;
+
+  const MyApp({super.key, required this.modelPath});
 
   @override
   Widget build(BuildContext context) {
@@ -145,9 +162,10 @@ class MyApp extends StatelessWidget {
 
         // ── Semantic Search ───────────────────────────────────────────────
         Provider<EmbeddingService>(
-          create: (_) => TfliteEmbeddingService(
-            modelAssetPath: 'assets/models/all-MiniLM-L6-v2.tflite',
+          create: (_) => OnnxEmbeddingService(
+            modelFilePath: modelPath,
             vocabAssetPath: 'assets/models/vocab.txt',
+            maxLen: 32,
           ),
         ),
 

@@ -265,6 +265,7 @@ class HomeViewModel extends ChangeNotifier {
       matches = await _semanticSearchService.semanticSearch(
         searchQuery,
         candidates: candidates,
+        minScore: -1.0,
       );
     } catch (e) {
       debugPrint('HomeViewModel: semanticSearch error: $e');
@@ -288,10 +289,14 @@ class HomeViewModel extends ChangeNotifier {
       final byId = {
         for (final listing in filtered) listing.id: listing,
       };
-      filtered = matchIds
-          .map((id) => byId[id])
-          .whereType<ListingSummary>()
-          .toList();
+      final ordered = <ListingSummary>[];
+      for (final id in matchIds) {
+        final listing = byId[id];
+        if (listing != null) ordered.add(listing);
+      }
+      final orderedIds = ordered.map((l) => l.id).toSet();
+      final remaining = filtered.where((l) => !orderedIds.contains(l.id));
+      filtered = [...ordered, ...remaining];
     } else {
       filtered = _fallbackTextSearch(filtered, searchQuery);
     }
